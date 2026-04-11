@@ -11,151 +11,223 @@ const REMEDIES={
 }
 
 const DASHA_THEMES={
-  Surya:{positive:'soul purpose, authority, government, father, vitality and recognition',negative:'ego conflicts, health of eyes and heart, disputes with authority',advice:'Step into leadership roles. Seek recognition but guard against pride.'},
-  Chandra:{positive:'emotional depth, mind, mother, public popularity, intuition and nurturing',negative:'mental fluctuations, water-related issues, emotional instability',advice:'Honour your emotional needs. Connect with water, nature and feminine energy.'},
-  Mangal:{positive:'energy, courage, property, siblings, ambition and physical vitality',negative:'aggression, accidents, inflammation, disputes with brothers',advice:'Channel your energy into disciplined physical activity and decisive action.'},
-  Budha:{positive:'intellect, communication, business, education, travel and analytical skills',negative:'nervousness, skin issues, miscommunication, scattered energy',advice:'Study, write, communicate and engage in intellectual pursuits actively.'},
-  Guru:{positive:'wisdom, spirituality, children, fortune, higher learning and expansion',negative:'overindulgence, false optimism, liver issues, weight gain',advice:'Seek a guru. Study scripture. Be generous. Expand your philosophical horizons.'},
-  Shukra:{positive:'relationships, creative expression, luxury, vehicles, beauty and material comforts',negative:'over-indulgence, relationship issues, reproductive health',advice:'Cultivate beauty, art and loving relationships. Balance pleasure with spiritual practice.'},
-  Shani:{positive:'discipline, karma, longevity, real estate, service and hard-earned rewards',negative:'delays, restrictions, depression, joint issues, hard karmic lessons',advice:'Be patient and disciplined. Do karma seva. Avoid shortcuts — Saturn rewards steady effort.'},
-  Rahu:{positive:'foreign connections, innovation, technology, ambition and unconventional gains',negative:'illusions, obsessions, sudden disruptions, anxiety and deception',advice:'Stay grounded. Avoid shortcuts. Foreign connections may be highly beneficial.'},
-  Ketu:{positive:'spirituality, psychic ability, moksha, detachment and past-life wisdom',negative:'isolation, confusion, loss, separation and karmic debts surfacing',advice:'Embrace meditation and spiritual practice. Let go of what no longer serves your soul.'}
-}
-
-const TRANSIT_EFFECTS={
-  Guru:{positive:'expansion, wisdom, new opportunities and divine grace',duration:'~12 months per sign'},
-  Shani:{positive:'discipline, karmic lessons and structural changes',duration:'~2.5 years per sign'},
-  Mangal:{positive:'energy, action and courage',duration:'~6 weeks per sign'},
-  Rahu:{positive:'ambition, innovation and worldly desires',duration:'~18 months per sign'},
+  Surya:{positive:'soul purpose, authority, government, father and recognition',negative:'ego conflicts, eye and heart health, disputes with authority',advice:'Step into leadership. Seek recognition but guard against pride.'},
+  Chandra:{positive:'emotional depth, mind, mother, public popularity and intuition',negative:'mental fluctuations, emotional instability, water-related issues',advice:'Honour your emotional needs. Connect with water, nature and feminine energy.'},
+  Mangal:{positive:'energy, courage, property, siblings, ambition and physical vitality',negative:'aggression, accidents, inflammation, disputes',advice:'Channel energy into disciplined physical activity and decisive action.'},
+  Budha:{positive:'intellect, communication, business, education and travel',negative:'nervousness, skin issues, miscommunication, scattered energy',advice:'Study, write, communicate and engage in intellectual pursuits.'},
+  Guru:{positive:'wisdom, spirituality, children, fortune and higher learning',negative:'overindulgence, false optimism, liver issues',advice:'Seek a guru. Study scripture. Be generous and expand philosophically.'},
+  Shukra:{positive:'relationships, creativity, luxury, beauty and material comforts',negative:'over-indulgence, relationship issues, reproductive health',advice:'Cultivate beauty, art and loving relationships.'},
+  Shani:{positive:'discipline, karma, longevity, service and hard-earned rewards',negative:'delays, restrictions, depression, joint issues',advice:'Be patient and disciplined. Serve others. Avoid shortcuts.'},
+  Rahu:{positive:'foreign connections, innovation, technology and unconventional gains',negative:'illusions, obsessions, sudden disruptions and anxiety',advice:'Stay grounded. Avoid shortcuts. Foreign connections may be beneficial.'},
+  Ketu:{positive:'spirituality, psychic ability, moksha and past-life wisdom',negative:'isolation, confusion, loss and karmic debts surfacing',advice:'Embrace meditation and spiritual practice. Let go of the past.'}
 }
 
 function getFavourableDays(dashaLord,moonSign) {
   const DAYS={Surya:'Sunday',Chandra:'Monday',Mangal:'Tuesday',Budha:'Wednesday',Guru:'Thursday',Shukra:'Friday',Shani:'Saturday',Rahu:'Saturday',Ketu:'Tuesday'}
   const moonDays={Mesha:'Tuesday',Vrishabha:'Friday',Mithuna:'Wednesday',Karka:'Monday',Simha:'Sunday',Kanya:'Wednesday',Tula:'Friday',Vrischika:'Tuesday',Dhanu:'Thursday',Makara:'Saturday',Kumbha:'Saturday',Meena:'Thursday'}
-  return [DAYS[dashaLord],moonDays[moonSign]].filter((v,i,a)=>a.indexOf(v)===i).join(' and ')
+  return [DAYS[dashaLord],moonDays[moonSign]].filter((v,i,a)=>v&&a.indexOf(v)===i).join(' and ')
 }
 
-function getTransitAnalysis(currentTransits,birthPlanets,ascIdx) {
-  const insights=[]
-  const satTransit=currentTransits?.find(t=>t.name==='Shani')
-  const jupTransit=currentTransits?.find(t=>t.name==='Guru')
-  const moonBirth=birthPlanets?.find(p=>p.name==='Chandra')
-  if(satTransit&&moonBirth) {
-    const satSign=satTransit.sign,moonBirthSign=moonBirth.sign
-    if(satSign===moonBirthSign) insights.push(`🔴 Saturn is currently transiting your natal Moon sign (${moonBirthSign}) — this is the peak of Sade Sati. This 2.5 year period brings karmic intensity, delays and deep transformation. Patience and spiritual practice are essential.`)
-    else insights.push(`Saturn is currently in ${satSign}, activating themes of discipline and karmic resolution in that area of your chart.`)
-  }
-  if(jupTransit) insights.push(`Jupiter in ${jupTransit.sign} is expanding opportunities in the corresponding house of your birth chart — look for growth, wisdom and good fortune from this direction.`)
-  return insights
+function getWeeklyCareer(dl,al,h10lord,favDays) {
+  const opening = dl==='Shani'||al==='Shani'
+    ? 'Saturn\'s steady hand governs your professional week — this is not the time for grand gestures but for disciplined, focused work on existing tasks.'
+    : dl==='Guru'||al==='Guru'
+    ? 'Jupiter casts an expansive light on your career this week — look for a small but meaningful opportunity to expand your role or demonstrate your expertise.'
+    : dl==='Surya'||al==='Surya'
+    ? 'Solar energy heightens your visibility at work this week — a good time to present ideas, seek recognition or initiate conversations with authority figures.'
+    : 'The week calls for focused effort on immediate tasks rather than long-range planning.'
+  return `${opening} The 10th house lord **${h10lord}** indicates that ${favDays} are the most productive days for important meetings, presentations or financial decisions. Mid-week may bring a minor obstacle — approach it with patience rather than force. Avoid signing contracts or making large financial commitments on unfavourable days.`
+}
+
+function getMonthlyCareer(dl,al,h10lord) {
+  const opening = dl==='Shani'||al==='Shani'
+    ? 'This month Saturn asks you to consolidate, organise and eliminate what is inefficient in your professional life. A slow month for new beginnings but excellent for completing pending work.'
+    : dl==='Guru'||al==='Guru'
+    ? 'Jupiter\'s monthly influence opens meaningful doors — a mentor, institution or higher authority may play a significant role in your professional growth this month.'
+    : dl==='Mangal'||al==='Mangal'
+    ? 'Mars energises your professional month with drive and initiative. Take bold action in the first half; the second half calls for consolidation and review.'
+    : dl==='Shukra'||al==='Shukra'
+    ? 'Venus brings charm and creative energy to your professional interactions this month — collaborations, client relationships and creative projects are especially favoured.'
+    : 'This month brings steady professional progress with one notable development around the middle of the month.'
+  return `${opening} The 10th house lord **${h10lord}** suggests that career themes evolve meaningfully over the coming weeks. Focus on building one key professional relationship this month — it will prove valuable in the months ahead. Financially, the second half of the month is stronger than the first.`
+}
+
+function getAnnualCareer(dl,al,h10lord,dasha) {
+  const opening = dl==='Shani'
+    ? 'This is a Saturn year of your life — defined by hard work, karmic accountability and the slow but certain building of something lasting. Shortcuts will not work; disciplined effort will be richly rewarded by year\'s end.'
+    : dl==='Guru'
+    ? 'Jupiter Mahadasha makes 2026 a year of significant professional expansion. New opportunities in education, advisory roles, international connections or leadership positions are strongly favoured. Say yes to growth.'
+    : dl==='Shukra'
+    ? 'Venus Mahadasha colours 2026 with creativity, collaboration and material prosperity. Careers in arts, beauty, finance, relationships and luxury sectors are especially activated.'
+    : dl==='Rahu'
+    ? 'Rahu Mahadasha in 2026 accelerates unconventional career moves — technology, foreign work, entrepreneurship and breaking out of traditional paths are highlighted. Embrace the unexpected.'
+    : `The ${dl} Mahadasha continues to shape your career arc in 2026, activating themes of ${DASHA_THEMES[dl]?.positive}.`
+  return `${opening}\n\nThe ${al} Antardasha ending ${dasha?.antarEndDate||'later this year'} focuses these energies specifically on ${DASHA_THEMES[al]?.positive}. This year is a karmic checkpoint — the professional decisions made in 2026 will define the trajectory of the next 3-5 years. Invest in skill development, build your reputation consciously and avoid burning bridges.`
+}
+
+function getWeeklyRelationships(dl,al,moonSign) {
+  if(dl==='Shukra'||al==='Shukra') return `Venus rules your relational week with a warm, harmonious glow. This is an excellent week for romance, social connection and heartfelt conversations. Plan something beautiful with a loved one — even a simple shared meal becomes meaningful now. Singles may have a significant encounter mid-week.`
+  if(dl==='Mangal'||al==='Mangal') return `Mars brings intensity to relationships this week — passion runs high but so does the potential for friction. Choose words carefully in close relationships, especially ${moonSign==='Vrischika'||moonSign==='Mesha'?'on Tuesday and Wednesday':'mid-week'}. Physical activity shared with a partner transforms tension into bonding energy.`
+  if(dl==='Shani'||al==='Shani') return `Saturn\'s influence this week calls for honest, practical relationship conversations rather than romantic gestures. Address a longstanding issue with patience and maturity — what you resolve this week may lift a burden that has lingered for months.`
+  return `Relationships this week benefit from simple, genuine presence. Put the phone away during shared time. Listen more than you speak. A small, thoughtful gesture will be remembered far longer than an elaborate plan.`
+}
+
+function getMonthlyRelationships(dl,al,moonSign) {
+  if(dl==='Shukra'||al==='Shukra') return `Venus Dasha makes this a beautiful month for love and connection. Existing relationships deepen with natural ease — plan a meaningful experience together. Singles are in a magnetically attractive phase; social events in the first half of the month are especially promising. Beauty, art and shared aesthetic experiences strengthen bonds.`
+  if(dl==='Shani'||al==='Shani') return `Saturn\'s monthly influence tests relationships for genuine depth and mutual commitment. Some relationships may feel strained or require difficult conversations — approach these with maturity and compassion. What survives this period is built to last. For singles, this month calls for honest self-reflection on relationship patterns before seeking new connections.`
+  if(dl==='Guru'||al==='Guru') return `Jupiter\'s expansive energy this month brings wisdom and generosity to your relationships. You may play the role of guide or counsellor for someone close. Philosophical conversations and shared learning experiences deepen bonds. For singles, connections made through educational or spiritual settings are particularly meaningful.`
+  return `Relationships this month follow the rhythm of the ${dl} Dasha — ${DASHA_THEMES[dl]?.positive}. Focus on quality over quantity in your social interactions. One or two deeply nourishing relationships will serve you better than many surface-level connections this month.`
+}
+
+function getAnnualRelationships(dl,al,moonSign,doshas) {
+  const mangalDosha = doshas?.find(d=>d.name==='Mangal Dosha')
+  const base = dl==='Shukra'
+    ? 'Venus Mahadasha makes 2026 one of the most significant years for relationships in your entire dasha cycle. Marriage, deep commitment, artistic partnership or a transformative love connection is strongly possible. Existing relationships reach new levels of intimacy and understanding.'
+    : dl==='Shani'
+    ? 'Saturn\'s annual influence on relationships in 2026 is one of maturation and karmic resolution. Old relationship patterns that no longer serve you will be challenged and transformed. This is a year to build partnership on the foundation of shared values, mutual respect and long-term commitment rather than surface attraction.'
+    : dl==='Rahu'
+    ? 'Rahu\'s influence in 2026 may bring unconventional, intense or foreign connections into your relational world. Relationships formed this year may feel fated or karmic. Exercise discernment — not every intense connection is meant to last, but the lessons are always valuable.'
+    : `The ${dl} Dasha colours 2026\'s relational landscape with themes of ${DASHA_THEMES[dl]?.positive}.`
+  return `${base}\n\n${mangalDosha?`**Note on Mangal Dosha:** ${mangalDosha.desc} This year, the dosha remedy is particularly important for relationship harmony.`:''} Your ${moonSign} Moon sign calls for ${moonSign==='Karka'||moonSign==='Meena'?'emotional depth and nurturing as the foundation of all meaningful bonds':'authentic expression and honesty as the cornerstone of lasting partnership'} in 2026.`
+}
+
+function getWeeklyHealth(dl,moonSign) {
+  const base = dl==='Shani'?'Saturn may manifest as lower back tightness, fatigue or joint stiffness this week — prioritise warm sesame oil massage, adequate sleep and avoiding prolonged sitting.':dl==='Mangal'?'Mars energy is high this week — great for exercise but watch for overexertion, inflammation or minor injuries. Stay hydrated and avoid reckless physical activity.':dl==='Rahu'?'Rahu can create restlessness and disrupted sleep this week — establish a calming bedtime routine, reduce screen time after sunset and practice grounding breathwork.':'Health this week is generally supportive. Maintain your existing routines and avoid skipping meals or sleep.'
+  const moonHealth = moonSign==='Karka'||moonSign==='Meena'?'Watch digestive sensitivity — eat warm, easily digestible foods and avoid cold or raw foods.':moonSign==='Mesha'||moonSign==='Simha'?'Pitta energy may run high — cooling foods, adequate water and avoiding excessive heat or sun are beneficial.':'Vata balance is key this week — warm oil massage, regular meal times and avoiding excessive multitasking.'
+  return `${base} ${moonHealth} **Weekly practice:** 10 minutes of Anulom Vilom pranayama each morning will noticeably stabilise energy and mental clarity throughout the week.`
+}
+
+function getMonthlyHealth(dl,moonSign) {
+  const base = dl==='Shani'?'This month, Saturn calls for a serious look at structural health habits — sleep, posture, joint care and chronic issues deserve attention. Schedule any overdue medical check-ups this month.':dl==='Guru'?'Jupiter\'s monthly influence generally supports vitality and healing. A good month to begin a new health regimen, consult an Ayurvedic practitioner or deepen a yoga practice.':dl==='Mangal'?'Mars brings physical energy and drive this month — channel it through consistent structured exercise. Be cautious of inflammatory conditions, fevers or accidents in the second half.':'Health this month responds well to consistency — whatever practices you establish in the first week tend to carry through the month.'
+  return `${base} For your ${moonSign} constitution, this month\'s focus should be on ${moonSign==='Karka'||moonSign==='Meena'?'gut health, emotional processing and reducing anxiety through routine':'maintaining energy levels through balanced activity, nourishing food and avoiding over-stimulation'}. A monthly Ayurvedic oil massage (Abhyanga) at the new moon is especially restorative.`
+}
+
+function getAnnualHealth(dl,moonSign) {
+  const base = dl==='Shani'?'Saturn Mahadasha in 2026 calls for proactive, preventive healthcare. Joints, bones, teeth and chronic conditions associated with Saturn deserve particular attention this year. Begin or deepen a consistent yoga and pranayama practice — the investment in daily discipline now creates robust health for years ahead.':dl==='Rahu'?'Rahu Mahadasha can create unusual, hard-to-diagnose health patterns in 2026 — trust your body\'s signals and seek qualified medical advice promptly. Mental health, nervous system care and sleep quality are priority areas.':dl==='Mangal'?'Mars Mahadasha in 2026 gives excellent physical energy but requires channelling — structured athletic training, martial arts or an intensive yoga practice will convert this Martian fire into sustained vitality rather than inflammation or injury.':'This year\'s health theme is building sustainable foundations — nutrition, sleep, movement and stress management deserve conscious attention in 2026.'
+  return `${base}\n\nFor your ${moonSign} Moon constitution, 2026\'s annual health focus is ${moonSign==='Karka'||moonSign==='Meena'?'the gut-brain connection — emotional health directly impacts physical vitality. Prioritise stress reduction, regular nature immersion and a sattvic diet':moonSign==='Mesha'||moonSign==='Simha'?'managing Pitta — cooling practices, meditation and avoiding excessive competition or anger will protect cardiovascular health':'maintaining Vata balance through routine, warmth and grounding — irregular schedules are your primary health risk this year'}.`
+}
+
+function getWeeklySpirituality(dl,al,nakshatra,nakshatraLord) {
+  if(dl==='Ketu'||al==='Ketu') return `Ketu\'s influence makes this one of the most spiritually charged weeks in your current cycle. Silence, solitude and inner listening will reveal something profound. A spontaneous visit to a temple, river or natural sacred site may carry unexpected significance. Dreams may be particularly vivid and meaningful — keep a dream journal.`
+  if(dl==='Guru'||al==='Guru') return `Jupiter illuminates your spiritual week with wisdom and philosophical insight. A teaching, book, conversation or inner realisation may expand your understanding significantly. Chanting, mantra recitation and scriptural study are particularly potent now. Generosity of spirit — giving your time, attention or resources — accelerates spiritual merit.`
+  if(dl==='Shani'||al==='Shani') return `Saturn\'s spiritual lesson this week is about consistency over inspiration. Spiritual practice that feels routine and undramatic is exactly what Saturn rewards — show up daily, do the practice, and trust the invisible accumulation of merit. Karma seva (selfless service) is especially powerful now.`
+  return `Your ${nakshatra} Nakshatra, ruled by ${nakshatraLord}, gifts you with natural spiritual sensitivity this week. Even 15 minutes of morning stillness — before the day's noise begins — will create a thread of inner peace that carries through every interaction.`
+}
+
+function getMonthlySpirituality(dl,al,nakshatra) {
+  if(dl==='Ketu'||al==='Ketu') return `This month, Ketu\'s moksha energy is particularly strong. Consider a one-day silent retreat, a visit to a powerful temple or sacred site, or beginning a 40-day daily mantra discipline (sadhana). Ancestral healing practices — Pitru Tarpan, offering to ancestors — are especially beneficial and create powerful karmic resolution.`
+  if(dl==='Guru'||al==='Guru') return `Jupiter\'s monthly spiritual influence is one of expansion and divine grace. This is an excellent month to seek initiation into a new practice, find a qualified teacher or commit to a serious study of Vedic or spiritual philosophy. Your prayers and intentions carry particular power this month — be conscious of what you put into words.`
+  return `This month invites you to deepen whatever spiritual practice already resonates with you rather than seeking something new. The ${nakshatra} Nakshatra quality of your Moon suggests that ${['Rohini','Uttara Phalguni','Uttara Ashadha','Uttara Bhadrapada'].includes(nakshatra)?'devotional practice — bhakti, puja, kirtan and heartfelt prayer':['Ardra','Vishakha','Jyeshtha','Mula'].includes(nakshatra)?'inquiry and philosophical investigation — Jnana yoga and self-inquiry':'consistent disciplined practice — Karma yoga and selfless service'} is your most natural path to the divine this month.`
+}
+
+function getAnnualSpirituality(dl,nakshatra,nakshatraDeity) {
+  if(dl==='Ketu') return `Ketu Mahadasha in 2026 is potentially the most spiritually transformative period of your life. The soul is pulling powerfully toward moksha, detachment and inner liberation. Material desires may feel hollow; spiritual seeking feels urgent. Follow this call — meditate deeply, find a genuine guru, undertake pilgrimage and read the great liberation texts. What you realise about your true nature this year may reshape your entire life trajectory.`
+  if(dl==='Guru') return `Jupiter Mahadasha makes 2026 a year of genuine spiritual expansion and fortune. The door to authentic spiritual teaching and transformation is wide open — walk through it consciously. This year, the quality of your spiritual practice will determine the quality of grace that flows into every area of your life. Consider formal initiation, an extended retreat or a significant pilgrimage.`
+  if(dl==='Shani') return `Saturn Mahadasha in 2026 teaches spirituality through lived experience rather than inspiration. Service, humility, consistency and facing uncomfortable truths about oneself are Saturn\'s spiritual curriculum. The practice is simple: do your duty without complaint, serve without expectation, and find the sacred in the ordinary. This is the yoga of everyday life.`
+  return `2026\'s spiritual theme is shaped by the ${dl} Mahadasha — a journey into ${DASHA_THEMES[dl]?.positive}. Your natal ${nakshatra} Nakshatra, presided over by ${nakshatraDeity||'divine forces'}, indicates that your spiritual nature is most deeply expressed through consistent practice, sincere devotion and service to others. Make one meaningful spiritual commitment for the full year — keep it, and watch how it transforms you.`
 }
 
 function generateHoroscope(chartData,period) {
-  const {ascendant,moonSign,nakshatra,nakshatraPada,nakshatraLord,nakshatraQuality,nakshatraDeity,dasha,yogas,doshas,planets,houses,name,currentTransits,ashtakavarga,sadeSati,panchanga}=chartData
+  const {ascendant,moonSign,nakshatra,nakshatraPada,nakshatraLord,nakshatraQuality,nakshatraDeity,dasha,yogas,doshas,planets,houses,name,currentTransits,ashtakavarga,sadeSati}=chartData
   const dl=dasha?.current||'Guru',al=dasha?.subDasha||'Shani',pl=dasha?.pratyantar||'Budha'
   const lagna=ascendant?.sign||moonSign
-  const remedy=REMEDIES[dl],theme=DASHA_THEMES[dl]
-  const antarTheme=DASHA_THEMES[al]
+  const remedy=REMEDIES[dl]
   const strongYogas=yogas?.filter(y=>['Very Strong','Strong'].includes(y.strength))
   const yogaNames=strongYogas?.length?strongYogas.map(y=>y.name).join(', '):'auspicious planetary combinations'
-  const h10=houses?.find(h=>h.house===10),h7=houses?.find(h=>h.house===7),h6=houses?.find(h=>h.house===6),h2=houses?.find(h=>h.house===2)
+  const h10=houses?.find(h=>h.house===10),h7=houses?.find(h=>h.house===7),h6=houses?.find(h=>h.house===6)
   const favDays=getFavourableDays(dl,moonSign)
-  const transitInsights=getTransitAnalysis(currentTransits,planets,ascendant?.signIndex)
-  const periodLabel=period==='weekly'?'this week':period==='monthly'?'this month':'this year (2026)'
-  const periodFocus=period==='weekly'?'day-to-day energies and immediate decisions':period==='monthly'?'evolving trends and month-long opportunities':'major life themes, annual patterns and long-range planning'
+  const strongHouses=ashtakavarga?.filter(h=>h.score>=5).slice(0,3)
+
+  const PERIOD_HEADER={
+    weekly:`# Weekly Horoscope — ${name||'Native'}\n*Week of ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}*`,
+    monthly:`# Monthly Horoscope — ${name||'Native'}\n*${new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'})}*`,
+    annual:`# Annual Horoscope 2026 — ${name||'Native'}\n*Varsha Phal — Annual Forecast*`
+  }
+
+  const PERIOD_INTRO={
+    weekly:`This week's reading focuses on **immediate energies, day-to-day decisions and short-term opportunities** specific to the next 7 days.`,
+    monthly:`This month's reading addresses **evolving trends, opportunities building over weeks and meaningful monthly themes** for the coming 30 days.`,
+    annual:`This annual reading covers **major life themes, significant turning points and the overarching karmic direction** for the year 2026.`
+  }
 
   const sections=[]
 
-  sections.push(`# ${period.charAt(0).toUpperCase()+period.slice(1)} Horoscope — ${name||'Native'}
+  sections.push(`${PERIOD_HEADER[period]}
 
 **Lagna:** ${lagna} | **Rashi:** ${moonSign} | **Nakshatra:** ${nakshatra} Pada ${nakshatraPada}
 **Dasha:** ${dl} → ${al} → ${pl} | **Dasha ends:** ${dasha?.endDate||'N/A'}
-${sadeSati?.active?`\n⚠️ **Sade Sati Active (${sadeSati.phase} Phase)** — A period of deep karmic transformation and inner growth.\n`:''}
+${sadeSati?.active?`\n⚠️ **Sade Sati Active (${sadeSati.phase} Phase)**\n`:''}
+${PERIOD_INTRO[period]}
+
 ---`)
 
-  sections.push(`## 🌌 Cosmic Theme for ${periodLabel.charAt(0).toUpperCase()+periodLabel.slice(1)}
+  // Period-specific cosmic overview
+  const WEEKLY_THEME=`The dominant planetary energy this week flows through ${dl} Mahadasha and ${al} Antardasha. On a week-by-week level, ${pl} Pratyantardasha is the most immediate influence shaping daily events. ${DASHA_THEMES[pl]?.positive||DASHA_THEMES[dl]?.positive} is the specific lens through which this week's experiences will be filtered. Your ${nakshatra} Nakshatra gives you the gift of **${nakshatraQuality||'inner wisdom'}** — draw on this consciously as you navigate the week ahead. **Favourable days this week: ${favDays}.**`
 
-The celestial currents governing your ${periodFocus} flow primarily through the ${dl} Mahadasha — a period activating **${theme?.positive}**. ${al} Antardasha colours this with ${antarTheme?.positive}, while ${pl} Pratyantardasha adds its specific texture to immediate events.
+  const MONTHLY_THEME=`This month, the ${al} Antardasha (ending ${dasha?.antarEndDate||'coming months'}) is the primary shaper of monthly experiences, operating within the broader ${dl} Mahadasha. The month unfolds in three phases: the first 10 days are governed by initiating energy — begin new things; the middle 10 days are for action and development; the final 10 days call for reflection and completion. ${yogaNames} continue to provide protection and elevation throughout. **Most powerful days this month: ${favDays}.**`
 
-${yogaNames} in your nativity continue to act as powerful protective and elevating forces. Your ${nakshatra} Nakshatra — ruled by ${nakshatraLord}, presided over by ${nakshatraDeity||'the cosmic deity'} — carries the quality of **${nakshatraQuality||'wisdom and inner strength'}**, giving you natural gifts to draw upon ${periodLabel}.
+  const ANNUAL_THEME=`2026 is defined by your ${dl} Mahadasha — ${DASHA_THEMES[dl]?.positive}. This is not just another year; it is a specific chapter in your karmic biography, coloured by the distinct qualities of ${dl}. The ${al} Antardasha (ending ${dasha?.antarEndDate||'N/A'}) shapes the first part of the year, transitioning to the next Antardasha with a noticeable shift in life themes. ${yogaNames} are the permanent elevated foundation upon which 2026's events unfold. **Key advice for the year: ${DASHA_THEMES[dl]?.advice}**`
 
-${theme?.advice||''}`)
+  sections.push(`## 🌌 ${period==='weekly'?'This Week\'s':period==='monthly'?'This Month\'s':'2026\'s'} Cosmic Theme\n\n${period==='weekly'?WEEKLY_THEME:period==='monthly'?MONTHLY_THEME:ANNUAL_THEME}`)
 
-  // Transit section
-  if(transitInsights?.length) {
-    sections.push(`## 🪐 Current Planetary Transits
-
-${transitInsights.join('\n\n')}
-
-${currentTransits?.slice(0,5).map(t=>`- **${t.name}** is in ${t.sign} (${t.degree}°)`).join('\n')||''}`)
+  // Transit section — only meaningful for weekly/monthly
+  if(period!=='annual'&&currentTransits?.length) {
+    const satT=currentTransits.find(t=>t.name==='Shani')
+    const jupT=currentTransits.find(t=>t.name==='Guru')
+    const marsT=currentTransits.find(t=>t.name==='Mangal')
+    const transitLines=[]
+    if(satT) transitLines.push(`**Saturn** transiting ${satT.sign} (${satT.degree}°) — ${period==='weekly'?'activates discipline, karmic themes and long-term restructuring in your life':'continues its 2.5-year transit, deepening karmic lessons and structural life changes'}`)
+    if(jupT) transitLines.push(`**Jupiter** in ${jupT.sign} (${jupT.degree}°) — ${period==='weekly'?'brings weekly opportunities for growth, wisdom and good fortune':'opens monthly doors to expansion, learning and divine grace'}`)
+    if(marsT&&period==='weekly') transitLines.push(`**Mars** in ${marsT.sign} (${marsT.degree}°) — adds ${['Mesha','Vrischika'].includes(marsT.sign)?'powerful, intense energy — channel it productively':'dynamic forward momentum'} to the week`)
+    if(transitLines.length) sections.push(`## 🪐 ${period==='weekly'?'Key Transits This Week':'Active Transits This Month'}\n\n${transitLines.join('\n')}`)
   }
 
-  sections.push(`## 💼 Career & Finance (Artha)
+  // Career
+  sections.push(`## 💼 Career & Finance (Artha)\n\n${period==='weekly'?getWeeklyCareer(dl,al,h10?.lord||'the house lord',favDays):period==='monthly'?getMonthlyCareer(dl,al,h10?.lord||'the house lord'):getAnnualCareer(dl,al,h10?.lord||'the house lord',dasha)}`)
 
-The 10th house of dharma and career is ruled by **${h10?.lord||'Shani'}** in your chart. ${dl==='Shani'||al==='Shani'?'Saturn\'s influence demands methodical, patient effort this period — avoid shortcuts and focus on building solid long-term structures. The rewards will come, but slowly and durably.':dl==='Guru'||al==='Guru'?'Jupiter\'s benevolent rays open doors to growth, higher knowledge, mentorship and recognition. This is an auspicious period for expansion and new ventures.':dl==='Surya'||al==='Surya'?'Sun dasha activates career ambitions strongly — government connections, authority and recognition are highlighted.':'The current dasha activates ambition, professional transformation and karmic career themes.'}
+  // Relationships
+  sections.push(`## 💞 Relationships & Love (Kama)\n\n${period==='weekly'?getWeeklyRelationships(dl,al,moonSign):period==='monthly'?getMonthlyRelationships(dl,al,moonSign):getAnnualRelationships(dl,al,moonSign,doshas)}`)
 
-${period==='annual'?'This year marks a significant karmic juncture in your professional trajectory — the seeds planted now will determine your career direction for years ahead. Focus on building skills, reputation and meaningful relationships in your field.':period==='monthly'?'Professional momentum builds through the month. Watch for an important opportunity or decision around the middle of the month — act decisively but after careful reflection.':'Early in the week favours planning and communication; action and decisions are best taken on '+favDays+'.'}
+  // Health
+  sections.push(`## 🌿 Health & Vitality (Arogya)\n\n${period==='weekly'?getWeeklyHealth(dl,moonSign):period==='monthly'?getMonthlyHealth(dl,moonSign):getAnnualHealth(dl,moonSign)}`)
 
-The 2nd house of wealth (${h2?.lord||'lord'}) and 11th house of gains indicate ${['Guru','Shukra','Chandra'].includes(dl)?'a period of financial expansion and material blessing':'the importance of disciplined financial management and avoiding speculative investments this period'}. ${doshas?.find(d=>d.name==='Mangal Dosha')?'The Mars influence creates impulsiveness in financial decisions — pause before committing significant resources.':''}`)
+  // Spirituality
+  sections.push(`## 🪔 Spirituality & Inner Growth (Dharma-Moksha)\n\n${period==='weekly'?getWeeklySpirituality(dl,al,nakshatra,nakshatraLord):period==='monthly'?getMonthlySpirituality(dl,al,nakshatra):getAnnualSpirituality(dl,nakshatra,nakshatraDeity)}`)
 
-  sections.push(`## 💞 Relationships & Love (Kama)
-
-The 7th house of partnerships is governed by **${h7?.lord||'Shukra'}**. ${dl==='Shukra'||al==='Shukra'?'Venus Dasha brings beautiful, harmonious energy to relationships. Love deepens, new meaningful bonds form, and existing partnerships flourish with attention and affection.':dl==='Mangal'||al==='Mangal'?'Mars energy intensifies passions and desires — while attraction is magnetic, guard against aggression, impulsiveness and conflict in close relationships. Channel this fire constructively.':dl==='Shani'||al==='Shani'?'Saturn period tests relationships for depth and commitment. Superficial connections may fall away, but genuine bonds strengthen and crystallise during this time.':'Relationships call for authentic communication, patience and emotional presence this period.'}
-
-${moonSign==='Karka'||moonSign==='Meena'||moonSign==='Vrishabha'?'Your Moon sign bestows deep emotional sensitivity — use this gift to create genuine intimacy and soulful connection rather than withdrawing when emotions feel overwhelming.':moonSign==='Mesha'||moonSign==='Simha'||moonSign==='Dhanu'?'Your fiery Moon sign brings warmth and passion to relationships — ensure you also create space to listen and receive, not only to give and lead.':'Your Moon\'s placement calls for balancing your rational nature with heartfelt emotional availability in relationships.'}
-
-${period==='annual'?'This year holds significant potential for relationship milestones — whether deepening commitment, healing old wounds, or opening to new love. For couples, joint spiritual practice or travel together is especially beneficial.':'Quality undivided time and sincere appreciation will significantly strengthen your most cherished relationships this period.'}`)
-
-  sections.push(`## 🌿 Health & Vitality (Arogya)
-
-The 6th house of health is ruled by **${h6?.lord||'Budha'}**. ${dl==='Shani'?'Saturn Mahadasha can manifest as chronic fatigue, joint issues or structural body concerns — prioritise adequate sleep, warm nourishing foods, Ayurvedic oil massage (abhyanga) and avoiding excessive cold.':dl==='Mangal'?'Mars Dasha brings high physical energy but risks overexertion, inflammation, fever or accidents — avoid reckless activities and channel this energy through structured exercise.':dl==='Rahu'?'Rahu Dasha can create mysterious or difficult-to-diagnose health issues, stress and nervous system strain — grounding practices, nature walks and reducing screen time are beneficial.':'Health is generally supportive this period with consistent attention to daily routine and lifestyle.'}
-
-Your ${moonSign} Moon suggests ${moonSign==='Karka'||moonSign==='Meena'?'the digestive system and emotional body are most sensitive — avoid cold, heavy, processed foods and nourish yourself with warm, easily digestible meals':'Vata balance is key — maintain regular meal times, sleep schedule and warm oil self-massage daily'}. 
-
-**Recommended practices ${periodLabel}:** Daily Anulom Vilom pranayama (10 minutes at dawn), a short walk in nature, and avoiding overcommitment of your time and energy.`)
-
-  sections.push(`## 🪔 Spirituality & Inner Growth (Dharma-Moksha)
-
-${nakshatra} Nakshatra — presided over by ${nakshatraDeity||'divine forces'} — carries the profound quality of **${nakshatraQuality||'spiritual wisdom'}**. This is the lens through which your soul perceives reality and the energy that animates your deepest spiritual seeking.
-
-${dl==='Ketu'||al==='Ketu'?'Ketu\'s influence is powerfully activating the moksha dimension of your life — this is one of the most spiritually charged periods you will experience. Meditation, solitude, pilgrimage, scripture study and letting go of worldly attachments will yield extraordinary inner fruits.':dl==='Guru'||al==='Guru'?'Jupiter\'s Mahadasha is among the most auspicious for genuine spiritual development. Seek a qualified guru or teacher, deepen your study of sacred texts, practice daily japa and expand your dharmic service to others.':dl==='Shani'||al==='Shani'?'Saturn\'s period strips away illusions and forces genuine inner work. This is a time of karmic maturation — embrace simplicity, serve others without expectation, and find the sacred in disciplined daily practice.':'Your sadhana practice, however modest, carries accelerated spiritual results during this dasha period.'}
-
-${period==='annual'?'Consider making a meaningful spiritual commitment this year — a daily mantra practice for the full year, a pilgrimage to a sacred site, or dedicated weekly seva (selfless service).':'Even 20-30 minutes of morning meditation, mantra or pranayama will create a noticeable and lasting shift in inner clarity, peace and outer circumstances.'}`)
-
-  // Ashtakavarga insight
-  const strongHouses=ashtakavarga?.filter(h=>h.score>=5).slice(0,3)
-  if(strongHouses?.length) {
-    sections.push(`## ⭐ Ashtakavarga Strength Analysis
-
-Your chart shows particular strength in the following areas based on Sarva Ashtakavarga:
-
-${strongHouses.map(h=>`- **${h.sign} (House ${h.house})** — Score ${h.score}/8: ${['Self and physical vitality','Wealth and family','Communication and courage','Home and mother','Children and intelligence','Health and service','Marriage and partnerships','Transformation and longevity','Fortune and dharma','Career and reputation','Gains and aspirations','Liberation and foreign lands'][h.house-1]}`).join('\n')}
-
-These houses are particularly activated and productive during transits — pay special attention when benefic planets move through them.`)
+  // Ashtakavarga — only for monthly and annual
+  if(period!=='weekly'&&strongHouses?.length) {
+    sections.push(`## ⭐ Ashtakavarga Strength — ${period==='monthly'?'This Month\'s Focus':'2026 Power Areas'}\n\nYour chart shows particular planetary strength in these houses — ${period==='monthly'?'this month\'s transits activate them meaningfully':'these are your primary power areas for 2026'}:\n\n${strongHouses.map(h=>`- **House ${h.house} (${h.sign})** — Score ${h.score}/8: ${['Self and vitality','Wealth and speech','Courage and siblings','Home and mother','Children and intelligence','Health and service','Marriage and partnerships','Transformation','Fortune and dharma','Career and status','Gains and social circle','Liberation and foreign lands'][h.house-1]}`).join('\n')}`)
   }
 
-  sections.push(`## 🙏 Vedic Remedies (Upaya) for ${period.charAt(0).toUpperCase()+period.slice(1)}
+  // Remedies — tailored to period
+  sections.push(`## 🙏 ${period==='weekly'?'This Week\'s':period==='monthly'?'This Month\'s':'2026\'s'} Vedic Remedies (Upaya)
 
-### Primary Remedy — ${dl} Mahadasha
+### For ${dl} Mahadasha
 **Mantra:** ${remedy?.mantra||'Gayatri Mantra 108x daily'}
 **Gemstone:** ${remedy?.gem||'Consult a qualified Jyotishi'}
-**Charity (Dana):** ${remedy?.charity||'Donate according to ruling planet'}
-**Favourable colour:** ${remedy?.colour||'As per ruling planet'}
+**Charity:** ${remedy?.charity||'Donate according to ruling planet'}
 
-### Supporting Remedy — ${al} Antardasha
-**Mantra:** ${REMEDIES[al]?.mantra||''}
-**Dana:** ${REMEDIES[al]?.charity||''}
+${period==='weekly'?`### Quick Weekly Practices
+- **${favDays}:** Most auspicious for important decisions and new beginnings
+- Light a ghee diya each morning before leaving home
+- Recite your Mahadasha mantra at least 27 times daily this week
+- Avoid arguments and major decisions on inauspicious days`
+:period==='monthly'?`### Monthly Sadhana
+- Begin a 40-day mantra discipline (starts at the next new or full moon)
+- Visit a Shiva or Vishnu temple on your most auspicious day this month
+- Donate to a cause aligned with your ruling planet on **${favDays}**
+- Journal daily — even 5 minutes of reflective writing creates powerful self-awareness`
+:`### Annual Commitment for 2026
+- Choose ONE mantra and recite it every single day of 2026 — consistency is the key
+- Make one significant charitable commitment for the year aligned with ${dl}
+- Plan at least one pilgrimage or sacred journey this year
+- Begin an Ayurvedic health protocol at the start of the year`}
 
-### Favourable Days ${periodLabel.charAt(0).toUpperCase()+periodLabel.slice(1)}
-**${favDays}** are particularly auspicious for important decisions, new beginnings and spiritual practices.
-
-### Universal Daily Sadhana
-Recite the **Gayatri Mantra** 108 times at dawn facing east. Light a pure ghee lamp before your home altar each evening. Practice gratitude through a daily journal — even three lines before sleep transforms consciousness. Acts of selfless charity (dana) aligned with your ruling planet dissolve karmic blockages and accelerate divine grace.
-
-${doshas?.length?`\n### Dosha Remedies\n${doshas.map(d=>`**${d.name}:** ${d.desc}`).join('\n')}`:''} 
+${doshas?.length?`\n### Dosha Remedies\n${doshas.map(d=>`**${d.name} (${d.severity}):** ${d.desc}`).join('\n\n')}`:''}
 
 ---
-*ॐ तत् सत् · सर्वे भवन्तु सुखिनः · May all beings be happy*
-*This reading is generated by the Jyotish engine based on classical Vedic principles.*`)
+*ॐ तत् सत् · ${period==='weekly'?'Shubh Saptaha — Blessed Week':'period'==='monthly'?'Shubh Masa — Blessed Month':'Shubh Varsha 2026 — Blessed Year'}*
+*May the eternal light of Jyotish illuminate your path*`)
 
   return sections.join('\n\n')
 }
