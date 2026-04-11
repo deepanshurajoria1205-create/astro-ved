@@ -1,18 +1,16 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    },
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x"
     }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/frontend/$1" }
+  },
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/calculate", "destination": "/api/calculate" },
+    { "source": "/api/horoscope", "destination": "/api/horoscope" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
