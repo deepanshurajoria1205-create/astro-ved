@@ -54,11 +54,11 @@ export default function HoroscopeScreen({ chartData, initialType, onBack }) {
             <p className="text-amber-800 text-sm tracking-widest">READING THE COSMOS...</p>
           </div>
         ) : (
-          <div className="prose prose-invert prose-amber max-w-none
-            prose-headings:text-amber-400 prose-headings:font-light prose-headings:tracking-wide
-            prose-p:text-amber-200 prose-p:leading-relaxed prose-p:text-sm
-            prose-strong:text-amber-400 prose-li:text-amber-200 prose-li:text-sm
-            prose-hr:border-amber-900/30">
+          <div className="prose max-w-none
+  prose-headings:text-amber-400 prose-headings:font-light prose-headings:tracking-wide
+  prose-p:text-amber-100 prose-p:leading-relaxed prose-p:text-sm
+  prose-strong:text-amber-300 prose-li:text-amber-100 prose-li:text-sm
+  prose-hr:border-amber-900/30 prose-em:text-amber-500">
             <ReactMarkdown>{text}</ReactMarkdown>
           </div>
         )}
