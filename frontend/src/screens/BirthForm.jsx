@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const API = 'http://localhost:3001/api'
+const API = window.location.origin + '/api'
 
 export default function BirthForm({ onCalculated }) {
   const [form, setForm] = useState({ name:'', dob:'', tob:'', pob:'', gender:'Male' })
