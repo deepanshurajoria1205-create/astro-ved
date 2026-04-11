@@ -59,7 +59,12 @@ function getCoords(pob) {
   for (const [city,coords] of Object.entries(CITIES)) {
     if (key.includes(city)||city.includes(key)) return coords
   }
-  return {lat:20.5937,lon:78.9629} // centre of India as default
+  return {lat:20.5937,lon:78.9629}
+}
+
+function resolveCoords(pob, reqLat, reqLon) {
+  if (reqLat && reqLon) return {lat: parseFloat(reqLat), lon: parseFloat(reqLon)}
+  return getCoords(pob)
 }
 
 // Improved Julian Day
@@ -369,7 +374,7 @@ export default async function handler(req,res) {
     if(!dob||!tob||!pob) return res.status(400).json({error:'Missing required fields'})
     const [year,month,day]=dob.split('-').map(Number)
     const [hour,minute]=tob.split(':').map(Number)
-    const {lat,lon}=getCoords(pob)
+    const {lat,lon}=resolveCoords(pob, req.body.lat, req.body.lon)
     const birthJD=toJD(year,month,day,hour,minute)
     const currentJD=toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
     const sunS=toSid(sunLon(birthJD),birthJD)
