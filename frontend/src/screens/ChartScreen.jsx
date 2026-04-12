@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import KundaliWheel from '../components/KundaliWheel'
 
-export default function ChartScreen({ chartData, onBack, onHoroscope }) {
+export default function ChartScreen({ chartData, onBack, onHoroscope, onChat }) {
   const [tab, setTab] = useState('kundali')
 
   const tabs = [
@@ -34,7 +34,7 @@ export default function ChartScreen({ chartData, onBack, onHoroscope }) {
       </div>
 
       <div className="px-4 pt-5">
-        {tab === 'kundali' && <KundaliTab chartData={chartData} onHoroscope={onHoroscope} />}
+        {tab === 'kundali' && <KundaliTab chartData={chartData} onHoroscope={onHoroscope} onChat={onChat} />}
         {tab === 'planets' && <PlanetsTab planets={chartData.planets} />}
         {tab === 'houses'  && <HousesTab houses={chartData.houses} />}
         {tab === 'yogas'   && <YogasTab yogas={chartData.yogas} doshas={chartData.doshas} dasha={chartData.dasha} />}
@@ -43,7 +43,7 @@ export default function ChartScreen({ chartData, onBack, onHoroscope }) {
   )
 }
 
-function KundaliTab({ chartData, onHoroscope }) {
+function KundaliTab({ chartData, onHoroscope, onChat }) {
   const info = [
     {label:'Lagna (Ascendant)', value:`${chartData.ascendant?.sign} ${chartData.ascendant?.symbol}`},
     {label:'Rashi (Moon Sign)',  value: chartData.moonSign},
@@ -72,7 +72,11 @@ function KundaliTab({ chartData, onHoroscope }) {
       <div className="w-full">
         <p className="text-xs tracking-[0.3em] text-amber-800 text-center mb-3">HOROSCOPE READINGS</p>
         <div className="grid grid-cols-3 gap-2">
-          {[{type:'weekly',label:'Weekly',icon:'🌙'},{type:'monthly',label:'Monthly',icon:'🌞'},{type:'annual',label:'Annual',icon:'🪐'}].map(h => (
+          {[
+            {type:'weekly',label:'Weekly',icon:'🌙'},
+            {type:'monthly',label:'Monthly',icon:'🌞'},
+            {type:'annual',label:'Annual',icon:'🪐'}
+          ].map(h => (
             <button key={h.type} onClick={() => onHoroscope(h.type)}
               className="bg-amber-950/20 border border-amber-900/30 rounded-xl py-4 text-amber-400 text-xs flex flex-col items-center gap-2 active:scale-95 transition-transform">
               <span className="text-2xl">{h.icon}</span>
@@ -81,6 +85,14 @@ function KundaliTab({ chartData, onHoroscope }) {
           ))}
         </div>
       </div>
+
+      {/* AI Chat button */}
+      <button onClick={onChat}
+        className="w-full bg-amber-950/20 border border-amber-700/30 rounded-xl py-4 text-amber-400 flex items-center justify-center gap-3 active:scale-95 transition-transform">
+        <span className="text-xl">💬</span>
+        <span className="text-sm">Ask Jyotish Acharya</span>
+        <span className="text-xs text-amber-700 ml-auto pr-2">AI Chat</span>
+      </button>
     </div>
   )
 }
@@ -88,6 +100,7 @@ function KundaliTab({ chartData, onHoroscope }) {
 function PlanetsTab({ planets }) {
   const DIGNITY_COLOR = {
     'Exalted':'text-green-400', 'Own sign':'text-amber-400',
+    'Moolatrikona':'text-yellow-400',
     'Debilitated':'text-red-400', 'Neutral':'text-slate-400'
   }
   return (
@@ -107,6 +120,9 @@ function PlanetsTab({ planets }) {
           <div className="text-right">
             <p className={`text-xs ${DIGNITY_COLOR[p.dignity] || 'text-slate-400'}`}>{p.dignity}</p>
             {p.retrograde && <p className="text-xs text-red-500">℞ Retro</p>}
+            {p.strength && (
+              <p className="text-xs text-amber-900">{p.strength}%</p>
+            )}
           </div>
         </div>
       ))}
@@ -120,8 +136,10 @@ function HousesTab({ houses }) {
     'Children & Creativity','Health & Service','Marriage & Partnerships','Transformation & Occult',
     'Father & Dharma','Career & Fame','Gains & Friends','Spirituality & Liberation'
   ]
-  const SYMBOLS = {'Mesha':'♈','Vrishabha':'♉','Mithuna':'♊','Karka':'♋','Simha':'♌','Kanya':'♍',
-    'Tula':'♎','Vrischika':'♏','Dhanu':'♐','Makara':'♑','Kumbha':'♒','Meena':'♓'}
+  const SYMBOLS = {
+    'Mesha':'♈','Vrishabha':'♉','Mithuna':'♊','Karka':'♋','Simha':'♌','Kanya':'♍',
+    'Tula':'♎','Vrischika':'♏','Dhanu':'♐','Makara':'♑','Kumbha':'♒','Meena':'♓'
+  }
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs tracking-[0.3em] text-amber-800 mb-2">BHAVA CHART</p>
@@ -150,26 +168,40 @@ function YogasTab({ yogas, doshas, dasha }) {
       <p className="text-xs tracking-[0.3em] text-amber-800 mb-1">YOGAS & DOSHAS</p>
       {yogas?.map((y,i) => (
         <div key={i} className="bg-green-950/30 border border-green-900/30 rounded-xl p-4">
-          <p className="text-green-400 font-medium mb-1">✦ {y.name}</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-green-400 font-medium">✦ {y.name}</p>
+            <span className="text-xs text-green-800">{y.strength}</span>
+          </div>
           <p className="text-xs text-green-700 leading-relaxed">{y.desc}</p>
         </div>
       ))}
+      {(!yogas || yogas.length === 0) && (
+        <p className="text-amber-800 text-sm text-center py-4">No major yogas detected in this chart.</p>
+      )}
       {doshas?.map((d,i) => (
         <div key={i} className="bg-red-950/20 border border-red-900/20 rounded-xl p-4">
-          <p className="text-red-400 font-medium mb-1">⚠ {d.name} <span className="text-xs">({d.severity})</span></p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-red-400 font-medium">⚠ {d.name}</p>
+            <span className="text-xs text-red-800">{d.severity}</span>
+          </div>
           <p className="text-xs text-red-800 leading-relaxed">{d.desc}</p>
         </div>
       ))}
       {dasha && (
         <div className="bg-amber-950/20 border border-amber-900/20 rounded-xl p-4">
           <p className="text-amber-400 font-medium mb-2">🕐 Vimshottari Dasha</p>
-          <p className="text-xs text-amber-700 leading-relaxed">
-            Currently running <strong className="text-amber-500">{dasha.current}</strong> Mahadasha — <strong className="text-amber-500">{dasha.subDasha}</strong> Antardasha, ending {dasha.endDate}.
+          <p className="text-xs text-amber-700 leading-relaxed mb-3">
+            Currently running <strong className="text-amber-500">{dasha.current}</strong> Mahadasha
+            — <strong className="text-amber-500">{dasha.subDasha}</strong> Antardasha
+            — <strong className="text-amber-500">{dasha.pratyantar}</strong> Pratyantardasha
+            <br/>Mahadasha ends: {dasha.endDate}
           </p>
-          <div className="mt-3 flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             {dasha.allDashas?.map((d,i) => (
-              <div key={i} className="flex justify-between text-xs">
-                <span className={d.planet===dasha.current ? 'text-amber-400 font-bold' : 'text-amber-900'}>{d.planet}</span>
+              <div key={i} className="flex justify-between items-center text-xs">
+                <span className={d.planet===dasha.current ? 'text-amber-400 font-bold' : 'text-amber-900'}>
+                  {d.planet===dasha.current ? '▶ ' : ''}{d.planet}
+                </span>
                 <span className="text-amber-900">{d.years} yrs</span>
               </div>
             ))}

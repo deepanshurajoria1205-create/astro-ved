@@ -3,6 +3,7 @@ import SplashScreen from './screens/SplashScreen'
 import BirthForm from './screens/BirthForm'
 import ChartScreen from './screens/ChartScreen'
 import HoroscopeScreen from './screens/HoroscopeScreen'
+import ChatScreen from './screens/ChatScreen'
 
 export default function App() {
   const [screen, setScreen] = useState('splash')
@@ -15,28 +16,28 @@ export default function App() {
       <div className="w-full max-w-md relative">
         {screen === 'splash' && <SplashScreen onDone={() => setScreen('form')} />}
         {screen === 'form' && (
-          <BirthForm
-            onCalculated={(data, form) => {
-              setChartData(data)
-              setFormData(form)
-              setScreen('chart')
-            }}
-          />
+          <BirthForm onCalculated={(data, form) => {
+            setChartData(data); setFormData(form); setScreen('chart')
+          }}/>
         )}
         {screen === 'chart' && (
           <ChartScreen
             chartData={chartData}
             onBack={() => setScreen('form')}
-            onHoroscope={(type) => {
-              setHoroscopeType(type)
-              setScreen('horoscope')
-            }}
+            onHoroscope={(type) => { setHoroscopeType(type); setScreen('horoscope') }}
+            onChat={() => setScreen('chat')}
           />
         )}
         {screen === 'horoscope' && (
           <HoroscopeScreen
             chartData={chartData}
             initialType={horoscopeType}
+            onBack={() => setScreen('chart')}
+          />
+        )}
+        {screen === 'chat' && (
+          <ChatScreen
+            chartData={chartData}
             onBack={() => setScreen('chart')}
           />
         )}

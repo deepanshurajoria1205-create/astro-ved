@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 
-const API = window.location.origin + '/api'
+const API = 'https://astro-ved-three.vercel.app/api'
 
 export default function BirthForm({ onCalculated }) {
   const [form, setForm] = useState({ name:'', dob:'', tob:'', pob:'', gender:'Male', lat:null, lon:null })
