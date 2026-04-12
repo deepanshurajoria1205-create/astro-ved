@@ -1,10 +1,20 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/ai-horoscope.js": {
+      "maxDuration": 30
+    },
+    "api/chat.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/calculate", "destination": "/api/calculate" },
     { "source": "/api/horoscope", "destination": "/api/horoscope" },
+    { "source": "/api/ai-horoscope", "destination": "/api/ai-horoscope" },
+    { "source": "/api/chat", "destination": "/api/chat" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
