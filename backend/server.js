@@ -362,7 +362,7 @@ Write a complete ${period} horoscope. ${period==='weekly'?'Mention specific days
 
 Use Sanskrit terms naturally. Be specific to this chart. End with a Sanskrit blessing.`
 
-IMPORTANT: Write complete sentences. Each section exactly 3 sentences. Do not cut off.`
+Use Sanskrit terms naturally. Be specific to this chart. End with a Sanskrit blessing.`
 
     const response=await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
