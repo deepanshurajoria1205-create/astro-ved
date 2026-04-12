@@ -48,7 +48,7 @@ Answer as a wise, warm Vedic astrologer:
 - End with a brief encouraging note when appropriate`
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -56,7 +56,7 @@ Answer as a wise, warm Vedic astrologer:
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 600,
+            maxOutputTokens: 400,
             topP: 0.9,
           }
         })
