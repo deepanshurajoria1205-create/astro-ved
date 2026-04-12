@@ -53,7 +53,7 @@ Period focus: ${PERIOD_FOCUS}
 Keep each section to 2-3 sentences ONLY. Total 200 words maximum.`
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,7 +61,7 @@ Keep each section to 2-3 sentences ONLY. Total 200 words maximum.`
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 500,
+            maxOutputTokens: 800,
             topP: 0.9,
           }
         })
