@@ -61,7 +61,7 @@ STYLE GUIDELINES:
 - Be SPECIFIC to this person's chart — mention their actual planets, signs, houses
 - Be warm but honest — mention both opportunities AND challenges
 - Each section should be 3-5 sentences minimum
-- Total length: 500-700 words
+- - Total length: 300-400 words maximum — be concise but specific
 - End with an inspiring closing line in both English and Sanskrit
 - Do NOT be generic — every sentence should reflect this specific chart`
 
@@ -73,10 +73,10 @@ STYLE GUIDELINES:
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 800,
-            topP: 0.9,
-          }
+  temperature: 0.8,
+  maxOutputTokens: 600,
+  topP: 0.9,
+}
         })
       }
     )
