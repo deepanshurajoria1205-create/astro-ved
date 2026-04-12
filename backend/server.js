@@ -107,13 +107,16 @@ function planetLon(planet,jd) {
   return ((L+(360/Math.PI)*p.e*Math.sin(Mrad))%360+360)%360
 }
 
-function ayanamsha(jd) { return 23.85064+1.396971*(jd-2451545)/36525*100 }
+function ayanamsha(jd) {
+  const T=(jd-2451545)/36525
+  return 23.85+0.0137*T*100
+}
 function toSid(lon,jd) { return ((lon-ayanamsha(jd))%360+360)%360 }
 
 function calcAsc(jd,lat,lon) {
   const T=(jd-2451545)/36525
   const eps=(23.439291-0.013004*T)*Math.PI/180
-  const GMST=(280.46061837+360.98564736629*(jd-2451545))%360
+  const GMST=(280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T)%360
   const LST=((GMST+lon)%360+360)%360
   const RAMC=LST*Math.PI/180
   const latR=lat*Math.PI/180
