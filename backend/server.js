@@ -330,31 +330,37 @@ app.post('/api/ai-horoscope', async (req, res) => {
     const h10=houses?.find(h=>h.house===10),h7=houses?.find(h=>h.house===7),h6=houses?.find(h=>h.house===6)
     const PERIOD_FOCUS={weekly:'this specific week. Mention Mon/Thu/Sat as key days.',monthly:'this month. Split early/mid/late phases.',annual:'the full year 2026. Mention key quarters.'}[period]
 
-    const prompt=`You are Jyotish Acharya, a master Vedic astrologer. Write a complete ${period} horoscope reading. START DIRECTLY with the first section. NO preamble or greeting.
+   const prompt=`You are Jyotish Acharya, a master Vedic astrologer with 40 years of experience. Speak with authority, warmth and spiritual insight.
 
-Chart: ${name}, ${ascendant?.sign} lagna, ${moonSign} Moon, ${nakshatra} Pada ${nakshatraPada} (lord:${nakshatraLord}), ${dl}-${al}-${pl} Dasha (ends ${dasha?.endDate}), strong:${strongPlanets}, yogas:${yogaList}, 10H:${h10?.lord}, 7H:${h7?.lord}, 6H:${h6?.lord}, Sade Sati:${sadeSati?.active?'Yes':'No'}.
+BIRTH CHART:
+- Name: ${name || 'the native'}
+- Lagna: ${ascendant?.sign} | Moon: ${moonSign} | Nakshatra: ${nakshatra} Pada ${nakshatraPada} (lord: ${nakshatraLord})
+- Dasha: ${dl} → ${al} → ${pl} (ends ${dasha?.endDate})
+- Strong planets: ${strongPlanets || 'none'} | Yogas: ${yogaList}
+- 10H lord: ${h10?.lord} | 7H lord: ${h7?.lord} | 6H lord: ${h6?.lord}
+- Sade Sati: ${sadeSati?.active ? 'YES — ' + sadeSati.phase : 'No'}
 
-Period focus: ${PERIOD_FOCUS}
+Write a complete ${period} horoscope. ${period==='weekly'?'Mention specific days (Monday, Thursday etc).':period==='monthly'?'Divide into early/mid/late month phases.':'Cover all 4 quarters of 2026.'}
 
 ## 🌌 Cosmic Theme
-[3 sentences about their dasha energy this ${period}]
+[4-5 sentences about their dasha and nakshatra energy this ${period}]
 
-## 💼 Career & Finance
-[3 sentences about career using 10H lord ${h10?.lord}]
+## 💼 Career & Finance (Artha)
+[4-5 sentences using 10H lord ${h10?.lord} with specific timing advice]
 
-## 💞 Relationships & Love
-[3 sentences about relationships using 7H lord ${h7?.lord}]
+## 💞 Relationships & Love (Kama)
+[4-5 sentences using 7H lord ${h7?.lord}]
 
-## 🌿 Health & Vitality
-[3 sentences about health for ${moonSign} Moon]
+## 🌿 Health & Vitality (Arogya)
+[4-5 sentences for ${moonSign} Moon using 6H lord ${h6?.lord}]
 
-## 🪔 Spirituality
-[3 sentences about spiritual practice for ${nakshatra} nakshatra]
+## 🪔 Spirituality (Dharma-Moksha)
+[4-5 sentences referencing ${nakshatra} nakshatra]
 
-## 🙏 Remedies
-[3 specific remedies for ${dl} dasha]
+## 🙏 Vedic Remedies (Upaya)
+[5-6 specific remedies — mantra, gemstone, charity, fasting, favourable days for ${dl} dasha]
 
-*End with a Sanskrit blessing*
+Use Sanskrit terms naturally. Be specific to this chart. End with a Sanskrit blessing.`
 
 IMPORTANT: Write complete sentences. Each section exactly 3 sentences. Do not cut off.`
 
@@ -365,7 +371,7 @@ IMPORTANT: Write complete sentences. Each section exactly 3 sentences. Do not cu
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           contents:[{parts:[{text:prompt}]}],
-          generationConfig:{temperature:0.7,maxOutputTokens:1000,topP:0.9}
+          generationConfig:{temperature:0.7,maxOutputTokens:2000,topP:0.9}
         })
       }
     )
