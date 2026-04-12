@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 
-const API = 'https://astro-ved-three.vercel.app/api'
+const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
 const SUGGESTED = [
   "What does my chart say about my career?",

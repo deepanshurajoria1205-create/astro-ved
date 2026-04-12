@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-const API = 'https://astro-ved-three.vercel.app/api'
+const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
 export default function HoroscopeScreen({ chartData, initialType, onBack }) {
   const [type, setType] = useState(initialType)
