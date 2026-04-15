@@ -31,41 +31,35 @@ export default function HoroscopeScreen({ chartData, initialType, onBack, theme 
   useEffect(() => { fetchHoroscope(type) }, [type, useAI])
 
   return (
-    <div className="min-h-screen pb-10''>
-      {/* Header */}
+    <div className="min-h-screen pb-10">
       <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-amber-900/20">
-        <button onClick={onBack} className={'text-2xl px-2 ' + (t.textMuted||'text-amber-700')}>‹</button>
+        <button onClick={onBack} className="text-amber-700 text-2xl px-2">&#8249;</button>
         <div className="flex-1">
           <p className="text-lg text-amber-400 capitalize">{type} Reading</p>
-          <p className="text-xs text-amber-800">{chartData.name} • {chartData.moonSign} Rashi</p>
+          <p className="text-xs text-amber-800">{chartData.name} · {chartData.moonSign} Rashi</p>
         </div>
-        {/* AI toggle */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-amber-800">AI</span>
           <button onClick={() => setUseAI(!useAI)}
-            className={`w-10 h-5 rounded-full transition-colors relative ${useAI ? 'bg-amber-500' : 'bg-amber-900/40'}`}>
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${useAI ? 'translate-x-5' : 'translate-x-0.5'}`}/>
+            className={'w-10 h-5 rounded-full transition-colors relative ' + (useAI ? 'bg-amber-500' : 'bg-amber-900/40')}>
+            <span className={'absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ' + (useAI ? 'translate-x-5' : 'translate-x-0.5')}/>
           </button>
         </div>
       </div>
 
-      {/* Period tabs */}
       <div className="flex gap-2 px-4 py-3 border-b border-amber-900/10">
-  {['weekly','monthly','annual'].map(tab => (
-    <button key={tab} onClick={() => setType(tab)}
-      className={'flex-1 py-2 rounded-lg text-xs capitalize transition-colors ' +
-        (type===tab
-          ? 'bg-amber-900/40 text-amber-400 border border-amber-700/40'
-          : 'text-amber-800 border border-amber-900/20')}>
-      {tab}
-    </button>
-  ))}
-</div>
+        {['weekly','monthly','annual'].map(tab => (
+          <button key={tab} onClick={() => setType(tab)}
+            className={'flex-1 py-2 rounded-lg text-xs capitalize transition-colors border ' +
+              (type===tab ? 'bg-amber-900/40 text-amber-400 border-amber-700/40' : 'text-amber-800 border-amber-900/20')}>
+            {tab}
+          </button>
+        ))}
+      </div>
 
-      {/* AI badge */}
       {useAI && !loading && (
         <div className="mx-5 mt-3 px-3 py-1.5 bg-amber-950/30 border border-amber-900/20 rounded-lg flex items-center gap-2">
-          <span className="text-amber-500 text-xs">✦</span>
+          <span className="text-amber-500 text-xs">&#10022;</span>
           <span className="text-xs text-amber-700">AI-powered reading by Jyotish Acharya</span>
         </div>
       )}
@@ -73,7 +67,7 @@ export default function HoroscopeScreen({ chartData, initialType, onBack, theme 
       <div className="px-5 pt-4">
         {loading ? (
           <div className="flex flex-col items-center gap-4 py-16">
-            <div className="text-4xl animate-spin">☸</div>
+            <div className="text-4xl animate-spin">&#9784;</div>
             <p className="text-amber-800 text-sm tracking-widest">
               {useAI ? 'CONSULTING THE STARS...' : 'READING THE COSMOS...'}
             </p>
