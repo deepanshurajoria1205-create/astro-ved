@@ -34,27 +34,26 @@ export default function App() {
   const [userLocation, setUserLocation] = useState(null)
 
   useEffect(() => {
-  // Simple time-based day/night as immediate fallback
   const hour = new Date().getHours()
   setIsDay(hour >= 6 && hour < 19)
 
-  // Then try geolocation for accurate sunrise/sunset
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords
-        setUserLocation({ lat: latitude, lon: longitude })
-        setIsDay(isDayTime(latitude, longitude))
-        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+        const lat = pos.coords.latitude
+        const lon = pos.coords.longitude
+        setUserLocation({ lat, lon })
+        setIsDay(isDayTime(lat, lon))
+        fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json')
           .then(r => r.json())
           .then(d => {
             const city = d.address?.city || d.address?.town || d.address?.village || 'your location'
             const country = d.address?.country || ''
             setUserLocation(prev => ({ ...prev, city, country, display: city + ', ' + country }))
-          }).catch(() => {})
+          })
+          .catch(() => {})
       },
       () => {
-        // Geolocation denied — use local time
         const hour = new Date().getHours()
         setIsDay(hour >= 6 && hour < 19)
         setUserLocation({ lat: 17.385, lon: 78.4867, city: 'Hyderabad', display: 'Hyderabad, India' })
@@ -66,14 +65,9 @@ export default function App() {
     const hour = new Date().getHours()
     setIsDay(hour >= 6 && hour < 19)
   }, 600000)
+
   return () => clearInterval(interval)
 }, [])
-    // Update day/night every 10 minutes
-    const interval = setInterval(() => {
-      if (userLocation) setIsDay(isDayTime(userLocation.lat, userLocation.lon))
-    }, 600000)
-    return () => clearInterval(interval)
-  }, [])
 
   const theme = isDay ? {
     bg: 'bg-gradient-to-br from-sky-100 via-amber-50 to-orange-100',
