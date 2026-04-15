@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.day-mode {
+  background: linear-gradient(135deg, #e0f2fe 0%, #fef9c3 50%, #fed7aa 100%) !important;
+  color: #1e293b;
+}

@@ -91,7 +91,7 @@ export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
   const visibleHooks = showAllHooks ? hooks : hooks.slice(0, 3)
 
   return (
-    <div className={'min-h-screen flex flex-col ' + (t.bg || '')}>
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
       <div className={'flex items-center gap-3 px-4 pt-6 pb-4 border-b ' + (t.border || '')}>
         <button onClick={onBack} className={'text-2xl px-2 ' + (t.textMuted || '')}>‹</button>

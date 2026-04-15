@@ -31,7 +31,7 @@ export default function HoroscopeScreen({ chartData, initialType, onBack, theme 
   useEffect(() => { fetchHoroscope(type) }, [type, useAI])
 
   return (
-    <div className={'min-h-screen pb-10 ' + (t.bg || '')}>
+    <div className="min-h-screen pb-10''>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-amber-900/20">
         <button onClick={onBack} className={'text-2xl px-2 ' + (t.textMuted||'text-amber-700')}>‹</button>
