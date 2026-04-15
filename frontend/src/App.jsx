@@ -34,30 +34,40 @@ export default function App() {
   const [userLocation, setUserLocation] = useState(null)
 
   useEffect(() => {
-    // Get user location for day/night and chat context
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords
-          setUserLocation({ lat: latitude, lon: longitude })
-          setIsDay(isDayTime(latitude, longitude))
-          // Reverse geocode to get city name
-          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
-            .then(r => r.json())
-            .then(d => {
-              const city = d.address?.city || d.address?.town || d.address?.village || d.address?.county || 'your location'
-              const country = d.address?.country || ''
-              setUserLocation(prev => ({ ...prev, city, country, display: city + ', ' + country }))
-            }).catch(() => {})
-        },
-        () => {
-          // Default to India if denied
-          setUserLocation({ lat: 20.5937, lon: 78.9629, city: 'India', display: 'India' })
-          setIsDay(isDayTime(20.5937, 78.9629))
-        }
-      )
-    }
+  // Simple time-based day/night as immediate fallback
+  const hour = new Date().getHours()
+  setIsDay(hour >= 6 && hour < 19)
 
+  // Then try geolocation for accurate sunrise/sunset
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords
+        setUserLocation({ lat: latitude, lon: longitude })
+        setIsDay(isDayTime(latitude, longitude))
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`)
+          .then(r => r.json())
+          .then(d => {
+            const city = d.address?.city || d.address?.town || d.address?.village || 'your location'
+            const country = d.address?.country || ''
+            setUserLocation(prev => ({ ...prev, city, country, display: city + ', ' + country }))
+          }).catch(() => {})
+      },
+      () => {
+        // Geolocation denied — use local time
+        const hour = new Date().getHours()
+        setIsDay(hour >= 6 && hour < 19)
+        setUserLocation({ lat: 17.385, lon: 78.4867, city: 'Hyderabad', display: 'Hyderabad, India' })
+      }
+    )
+  }
+
+  const interval = setInterval(() => {
+    const hour = new Date().getHours()
+    setIsDay(hour >= 6 && hour < 19)
+  }, 600000)
+  return () => clearInterval(interval)
+}, [])
     // Update day/night every 10 minutes
     const interval = setInterval(() => {
       if (userLocation) setIsDay(isDayTime(userLocation.lat, userLocation.lon))
