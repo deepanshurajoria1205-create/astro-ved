@@ -83,73 +83,42 @@ function sunLon(jd) {
 
 function moonLon(jd) {
   const T = (jd - 2451545.0) / 36525.0
-  // Mean longitude of Moon (degrees)
-  let L0 = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841.0
-  // Mean anomaly of Moon
-  let M = 134.9633964 + 477198.8675055*T + 0.0087414*T*T + T*T*T/69699.0
-  // Mean anomaly of Sun
-  let Ms = 357.5291092 + 35999.0502909*T - 0.0001536*T*T
-  // Moon argument of latitude
-  let F = 93.2720950 + 483202.0175233*T - 0.0036539*T*T
-  // Mean elongation of Moon
-  let D = 297.8501921 + 445267.1114034*T - 0.0018819*T*T
+  const T2 = T * T
+  const T3 = T2 * T
 
-  // Convert to radians
-  const toRad = d => ((d % 360) + 360) % 360 * Math.PI / 180
-  const Mr = toRad(M)
-  const Msr = toRad(Ms)
-  const Fr = toRad(F)
-  const Dr = toRad(D)
+  // Meeus Chapter 22 - fundamental arguments
+  // All in degrees, normalized to 0-360
+  const norm = d => ((d % 360) + 360) % 360
 
-  const lon = L0
-    + 6.288774*Math.sin(Mr)
-    + 1.274027*Math.sin(2*Dr-Mr)
-    + 0.658314*Math.sin(2*Dr)
-    + 0.213618*Math.sin(2*Mr)
-    - 0.185116*Math.sin(Msr)
-    - 0.114332*Math.sin(2*Fr)
-    + 0.058793*Math.sin(2*Dr-2*Mr)
-    + 0.057066*Math.sin(2*Dr-Msr-Mr)
-    + 0.053322*Math.sin(2*Dr+Mr)
-    + 0.045758*Math.sin(2*Dr-Msr)
-    - 0.040923*Math.sin(Msr-Mr)
-    - 0.034720*Math.sin(Dr)
-    - 0.030383*Math.sin(Msr+Mr)
-    + 0.015327*Math.sin(2*Dr-2*Fr)
-    - 0.012528*Math.sin(Mr+2*Fr)
-    + 0.010980*Math.sin(Mr-2*Fr)
-    + 0.010675*Math.sin(4*Dr-Mr)
-    + 0.010034*Math.sin(3*Mr)
-    + 0.008548*Math.sin(4*Dr-2*Mr)
-    - 0.007888*Math.sin(2*Dr+Msr-Mr)
-    - 0.006766*Math.sin(2*Dr+Msr)
-    - 0.005163*Math.sin(Dr-Mr)
-    + 0.004987*Math.sin(Dr+Msr)
-    + 0.004036*Math.sin(2*Dr-Msr+Mr)
-    + 0.003994*Math.sin(2*Dr+2*Mr)
-    + 0.003861*Math.sin(4*Dr)
-    + 0.003665*Math.sin(2*Dr-3*Mr)
-    - 0.002689*Math.sin(Msr-2*Mr)
-    - 0.002602*Math.sin(2*Dr-Mr+2*Fr)
-    + 0.002390*Math.sin(2*Dr-Msr-2*Mr)
-    - 0.002348*Math.sin(Dr+Mr)
-    + 0.002236*Math.sin(2*Dr-2*Msr)
-    - 0.002120*Math.sin(Msr+2*Mr)
-    - 0.002069*Math.sin(2*Msr)
-    + 0.002048*Math.sin(2*Dr-2*Msr-Mr)
-    - 0.001773*Math.sin(2*Dr+Mr-2*Fr)
-    + 0.001215*Math.sin(4*Dr-Msr-Mr)
-    - 0.001115*Math.sin(2*Mr+2*Fr)
-    - 0.000904*Math.sin(2*Dr-Msr-2*Mr)
-    - 0.000713*Math.sin(2*Msr-Mr)
-    - 0.000700*Math.sin(2*Dr+2*Msr-Mr)
-    + 0.000691*Math.sin(2*Dr+Msr-2*Mr)
-    + 0.000596*Math.sin(2*Dr-Msr-2*Fr)
-    + 0.000549*Math.sin(4*Dr+Mr)
-    + 0.000537*Math.sin(4*Mr)
-    + 0.000520*Math.sin(4*Dr-Msr)
-    - 0.000487*Math.sin(Dr-2*Mr)
-  return ((lon % 360) + 360) % 360
+  const Lp = norm(218.3165 + 481267.8813*T)  // Moon mean longitude
+  const D  = norm(297.8502 + 445267.1115*T - 0.0016300*T2 + T3/545868.0)
+  const M  = norm(357.5291 + 35999.0503*T)    // Sun mean anomaly
+  const Mp = norm(134.9634 + 477198.8676*T + 0.0089970*T2 + T3/69699.0)
+  const F  = norm(93.2721  + 483202.0175*T - 0.0036825*T2 + T3/327270.0)
+
+  const Dr  = D  * Math.PI/180
+  const Mr  = M  * Math.PI/180
+  const Mpr = Mp * Math.PI/180
+  const Fr  = F  * Math.PI/180
+
+  const sigma =
+    + 6.288 * Math.sin(Mpr)
+    + 1.274 * Math.sin(2*Dr - Mpr)
+    + 0.658 * Math.sin(2*Dr)
+    + 0.214 * Math.sin(2*Mpr)
+    - 0.186 * Math.sin(Mr)
+    - 0.114 * Math.sin(2*Fr)
+    + 0.059 * Math.sin(2*Dr - 2*Mpr)
+    + 0.057 * Math.sin(2*Dr - Mr - Mpr)
+    + 0.053 * Math.sin(2*Dr + Mpr)
+    + 0.046 * Math.sin(2*Dr - Mr)
+    + 0.041 * Math.sin(Mpr - Mr)
+    - 0.035 * Math.sin(Dr)
+    - 0.031 * Math.sin(Mpr + Mr)
+    - 0.015 * Math.sin(2*Fr - 2*Dr)
+    + 0.011 * Math.sin(Mpr - 4*Dr)
+
+  return norm(Lp + sigma)
 }
 
 function planetLon(planet,jd) {
