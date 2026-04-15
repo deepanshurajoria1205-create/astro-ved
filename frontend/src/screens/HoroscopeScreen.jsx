@@ -3,7 +3,8 @@ import ReactMarkdown from 'react-markdown'
 
 const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
-export default function HoroscopeScreen({ chartData, initialType, onBack }) {
+export default function HoroscopeScreen({ chartData, initialType, onBack, theme }) {
+  const t = theme || {}
   const [type, setType] = useState(initialType)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,10 +31,10 @@ export default function HoroscopeScreen({ chartData, initialType, onBack }) {
   useEffect(() => { fetchHoroscope(type) }, [type, useAI])
 
   return (
-    <div className="min-h-screen pb-10">
+    <div className={'min-h-screen pb-10 ' + (t.bg || '')}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-amber-900/20">
-        <button onClick={onBack} className="text-amber-700 text-2xl px-2">‹</button>
+        <button onClick={onBack} className={'text-2xl px-2 ' + (t.textMuted||'text-amber-700')}>‹</button>
         <div className="flex-1">
           <p className="text-lg text-amber-400 capitalize">{type} Reading</p>
           <p className="text-xs text-amber-800">{chartData.name} • {chartData.moonSign} Rashi</p>
@@ -50,14 +51,16 @@ export default function HoroscopeScreen({ chartData, initialType, onBack }) {
 
       {/* Period tabs */}
       <div className="flex gap-2 px-4 py-3 border-b border-amber-900/10">
-        {['weekly','monthly','annual'].map(t => (
-          <button key={t} onClick={() => setType(t)}
-            className={`flex-1 py-2 rounded-lg text-xs capitalize transition-colors
-              ${type===t ? 'bg-amber-900/40 text-amber-400 border border-amber-700/40' : 'text-amber-800 border border-amber-900/20'}`}>
-            {t}
-          </button>
-        ))}
-      </div>
+  {['weekly','monthly','annual'].map(tab => (
+    <button key={tab} onClick={() => setType(tab)}
+      className={'flex-1 py-2 rounded-lg text-xs capitalize transition-colors ' +
+        (type===tab
+          ? 'bg-amber-900/40 text-amber-400 border border-amber-700/40'
+          : 'text-amber-800 border border-amber-900/20')}>
+      {tab}
+    </button>
+  ))}
+</div>
 
       {/* AI badge */}
       {useAI && !loading && (
