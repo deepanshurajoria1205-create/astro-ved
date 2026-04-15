@@ -82,16 +82,68 @@ function sunLon(jd) {
 }
 
 function moonLon(jd) {
-  const T=(jd-2451545)/36525
-  const D=(297.85036+445267.11148*T)*Math.PI/180
-  const M=(357.52772+35999.05034*T)*Math.PI/180
-  const Mp=(134.96298+477198.867398*T)*Math.PI/180
-  const F=(93.27191+483202.017538*T)*Math.PI/180
-  const lon=218.3165+481267.8813*T-1.274*Math.sin(Mp-2*D)+0.658*Math.sin(2*D)
-    -0.186*Math.sin(M)-0.114*Math.sin(2*F)+0.059*Math.sin(2*Mp-2*D)
-  return ((lon%360)+360)%360
-}
+  const T = (jd - 2451545.0) / 36525.0
+  // Mean longitude
+  const L0 = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T + T * T * T / 538841.0
+  // Mean anomaly of Moon
+  const M = (134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + T * T * T / 69699.0) * Math.PI / 180
+  // Mean anomaly of Sun
+  const Ms = (357.5291092 + 35999.0502909 * T - 0.0001536 * T * T) * Math.PI / 180
+  // Moon argument of latitude
+  const F = (93.2720950 + 483202.0175233 * T - 0.0036539 * T * T) * Math.PI / 180
+  // Mean elongation of Moon
+  const D = (297.8501921 + 445267.1114034 * T - 0.0018819 * T * T) * Math.PI / 180
 
+  const lon = L0
+    + 6.288774 * Math.sin(M)
+    + 1.274027 * Math.sin(2*D - M)
+    + 0.658314 * Math.sin(2*D)
+    + 0.213618 * Math.sin(2*M)
+    - 0.185116 * Math.sin(Ms)
+    - 0.114332 * Math.sin(2*F)
+    + 0.058793 * Math.sin(2*D - 2*M)
+    + 0.057066 * Math.sin(2*D - Ms - M)
+    + 0.053322 * Math.sin(2*D + M)
+    + 0.045758 * Math.sin(2*D - Ms)
+    - 0.040923 * Math.sin(Ms - M)
+    - 0.034720 * Math.sin(D)
+    - 0.030383 * Math.sin(Ms + M)
+    + 0.015327 * Math.sin(2*D - 2*F)
+    - 0.012528 * Math.sin(M + 2*F)
+    + 0.010980 * Math.sin(M - 2*F)
+    + 0.010675 * Math.sin(4*D - M)
+    + 0.010034 * Math.sin(3*M)
+    + 0.008548 * Math.sin(4*D - 2*M)
+    - 0.007888 * Math.sin(2*D + Ms - M)
+    - 0.006766 * Math.sin(2*D + Ms)
+    - 0.005163 * Math.sin(D - M)
+    + 0.004987 * Math.sin(D + Ms)
+    + 0.004036 * Math.sin(2*D - Ms + M)
+    + 0.003994 * Math.sin(2*D + 2*M)
+    + 0.003861 * Math.sin(4*D)
+    + 0.003665 * Math.sin(2*D - 3*M)
+    - 0.002689 * Math.sin(Ms - 2*M)
+    - 0.002602 * Math.sin(2*D - M + 2*F)
+    + 0.002390 * Math.sin(2*D - Ms - 2*M)
+    - 0.002348 * Math.sin(D + M)
+    + 0.002236 * Math.sin(2*D - 2*Ms)
+    - 0.002120 * Math.sin(Ms + 2*M)
+    - 0.002069 * Math.sin(2*Ms)
+    + 0.002048 * Math.sin(2*D - 2*Ms - M)
+    - 0.001773 * Math.sin(2*D + M - 2*F)
+    + 0.001215 * Math.sin(4*D - Ms - M)
+    - 0.001115 * Math.sin(2*M + 2*F)
+    - 0.000904 * Math.sin(2*D - Ms - 2*M)
+    - 0.000713 * Math.sin(2*Ms - M)
+    - 0.000700 * Math.sin(2*D + 2*Ms - M)
+    + 0.000691 * Math.sin(2*D + Ms - 2*M)
+    + 0.000596 * Math.sin(2*D - Ms - 2*F)
+    + 0.000549 * Math.sin(4*D + M)
+    + 0.000537 * Math.sin(4*M)
+    + 0.000520 * Math.sin(4*D - Ms)
+    - 0.000487 * Math.sin(D - 2*M)
+  return ((lon % 360) + 360) % 360
+}
 function planetLon(planet,jd) {
   const T=(jd-2451545)/36525
   const p={
@@ -240,7 +292,9 @@ const tzOffsetHours = lon / 15
 const localDecimalHour = hour + minute / 60
 const utcDecimalHour = localDecimalHour - tzOffsetHours
 const utcH = Math.floor(((utcDecimalHour % 24) + 24) % 24)
-const utcM = Math.round((((utcDecimalHour % 24) + 24) % 24 - utcH) * 60)
+const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
+const utcH = Math.floor(utcDecimalNorm)
+const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
 const birthJD = toJD(year, month, day, utcH, utcM)
     const currentJD=toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
     const sunS=toSid(sunLon(birthJD),birthJD)
@@ -456,8 +510,9 @@ app.post('/api/debug', (req, res) => {
   const tzOffsetHours = lon / 15
   const localDecimalHour = hour + minute / 60
   const utcDecimalHour = localDecimalHour - tzOffsetHours
-  const utcH = Math.floor(((utcDecimalHour % 24) + 24) % 24)
-  const utcM = Math.round((((utcDecimalHour % 24) + 24) % 24 - utcH) * 60)
+  const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
+const utcH = Math.floor(utcDecimalNorm)
+const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
   const jd = toJD(year, month, day, utcH, utcM)
   const moonTropical = moonLon(jd)
   const ayan = ayanamsha(jd)
