@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import swisseph from 'swisseph'
 
 dotenv.config()
 const app = express()
@@ -11,7 +12,6 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok', server: 'render' }))
 
 const SIGNS = ['Mesha','Vrishabha','Mithuna','Karka','Simha','Kanya','Tula','Vrischika','Dhanu','Makara','Kumbha','Meena']
 const SIGN_LORDS = ['Mangal','Shukra','Budha','Chandra','Surya','Budha','Shukra','Mangal','Guru','Shani','Shani','Guru']
-const ELEMENTS = ['Fire','Earth','Air','Water','Fire','Earth','Air','Water','Fire','Earth','Air','Water']
 const SIGN_SYMBOLS = {'Mesha':'♈','Vrishabha':'♉','Mithuna':'♊','Karka':'♋','Simha':'♌','Kanya':'♍','Tula':'♎','Vrischika':'♏','Dhanu':'♐','Makara':'♑','Kumbha':'♒','Meena':'♓'}
 const NAKSHATRAS = [
   {name:'Ashwini',lord:'Ketu',deity:'Ashwini Kumaras',quality:'Swift, energetic, healing'},
@@ -57,6 +57,18 @@ const CITIES = {
   'paris':{lat:48.8566,lon:2.3522},'tokyo':{lat:35.6762,lon:139.6503},
 }
 
+// Swiss Ephemeris planet IDs
+const SE_PLANETS = {
+  Surya: swisseph.SE_SUN,
+  Chandra: swisseph.SE_MOON,
+  Mangal: swisseph.SE_MARS,
+  Budha: swisseph.SE_MERCURY,
+  Guru: swisseph.SE_JUPITER,
+  Shukra: swisseph.SE_VENUS,
+  Shani: swisseph.SE_SATURN,
+  Rahu: swisseph.SE_TRUE_NODE,
+}
+
 function getCoords(pob, reqLat, reqLon) {
   if (reqLat && reqLon) return {lat:parseFloat(reqLat), lon:parseFloat(reqLon)}
   const key = pob.toLowerCase().split(',')[0].trim()
@@ -72,94 +84,30 @@ function toJD(year,month,day,hour=12,minute=0) {
   return Math.floor(365.25*(year+4716))+Math.floor(30.6001*(month+1))+day+B-1524.5+(hour+minute/60)/24
 }
 
-function sunLon(jd) {
-  const T=(jd-2451545)/36525
-  const L0=280.46646+36000.76983*T
-  const M=(357.52911+35999.05029*T)*Math.PI/180
-  const C=(1.914602-0.004817*T)*Math.sin(M)+0.019993*Math.sin(2*M)+0.000289*Math.sin(3*M)
-  const omega=(125.04-1934.136*T)*Math.PI/180
-  return (((L0+C)-0.00569-0.00478*Math.sin(omega))%360+360)%360
+// Get planet longitude using Swiss Ephemeris
+function getPlanetLon(jd, planetId) {
+  return new Promise((resolve) => {
+    swisseph.swe_calc_ut(jd, planetId, swisseph.SEFLG_SIDEREAL | swisseph.SEFLG_SPEED, (result) => {
+      if (result.error) resolve(0)
+      else resolve(result.longitude)
+    })
+  })
 }
 
-function moonLon(jd) {
-  const T = (jd - 2451545.0) / 36525.0
-  const T2 = T * T
-  const T3 = T2 * T
-
-  // Meeus Chapter 22 - fundamental arguments
-  // All in degrees, normalized to 0-360
-  const norm = d => ((d % 360) + 360) % 360
-
-  const Lp = norm(218.3165 + 481267.8813*T)  // Moon mean longitude
-  const D  = norm(297.8502 + 445267.1115*T - 0.0016300*T2 + T3/545868.0)
-  const M  = norm(357.5291 + 35999.0503*T)    // Sun mean anomaly
-  const Mp = norm(134.9634 + 477198.8676*T + 0.0089970*T2 + T3/69699.0)
-  const F  = norm(93.2721  + 483202.0175*T - 0.0036825*T2 + T3/327270.0)
-
-  const Dr  = D  * Math.PI/180
-  const Mr  = M  * Math.PI/180
-  const Mpr = Mp * Math.PI/180
-  const Fr  = F  * Math.PI/180
-
-  const sigma =
-    + 6.288 * Math.sin(Mpr)
-    + 1.274 * Math.sin(2*Dr - Mpr)
-    + 0.658 * Math.sin(2*Dr)
-    + 0.214 * Math.sin(2*Mpr)
-    - 0.186 * Math.sin(Mr)
-    - 0.114 * Math.sin(2*Fr)
-    + 0.059 * Math.sin(2*Dr - 2*Mpr)
-    + 0.057 * Math.sin(2*Dr - Mr - Mpr)
-    + 0.053 * Math.sin(2*Dr + Mpr)
-    + 0.046 * Math.sin(2*Dr - Mr)
-    + 0.041 * Math.sin(Mpr - Mr)
-    - 0.035 * Math.sin(Dr)
-    - 0.031 * Math.sin(Mpr + Mr)
-    - 0.015 * Math.sin(2*Fr - 2*Dr)
-    + 0.011 * Math.sin(Mpr - 4*Dr)
-
-  return norm(Lp + sigma)
-}
-
-function planetLon(planet,jd) {
-  const T=(jd-2451545)/36525
-  const p={
-    Mangal:{L0:355.433,dL:19140.2993,e:0.0934,omega:286.5},
-    Budha:{L0:252.251,dL:149472.6746,e:0.2056,omega:77.5},
-    Guru:{L0:34.351,dL:3034.9057,e:0.0489,omega:14.3},
-    Shukra:{L0:181.979,dL:58517.8156,e:0.0068,omega:131.6},
-    Shani:{L0:50.077,dL:1222.1138,e:0.0565,omega:92.4}
-  }[planet]
-  if(!p) return 0
-  const L=p.L0+p.dL*T
-  const Mrad=(L-p.omega)*Math.PI/180
-  return ((L+(360/Math.PI)*p.e*Math.sin(Mrad))%360+360)%360
-}
-
-function ayanamsha(jd) {
-  const T = (jd - 2451545.0) / 36525.0
-  return 23.85472 + 1.39722*T + 0.00030*T*T
-}
-
-function toSid(lon,jd) { return ((lon-ayanamsha(jd))%360+360)%360 }
-
-function calcAsc(jd,lat,lon) {
-  const T=(jd-2451545)/36525
-  const eps=(23.439291-0.013004*T)*Math.PI/180
-  const GMST=(280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T)%360
-  const LST=((GMST+lon)%360+360)%360
-  const RAMC=LST*Math.PI/180
-  const latR=lat*Math.PI/180
-  const ascTan=Math.cos(RAMC)/(-Math.sin(RAMC)*Math.cos(eps)-Math.tan(latR)*Math.sin(eps))
-  let asc=Math.atan(ascTan)*180/Math.PI
-  if(Math.cos(RAMC)<0) asc+=180
-  return toSid(((asc%360)+360)%360,jd)
+// Get ascendant using Swiss Ephemeris
+function getAscendant(jd, lat, lon) {
+  return new Promise((resolve) => {
+    swisseph.swe_houses(jd, swisseph.SEFLG_SIDEREAL, lat, lon, 'P', (result) => {
+      if (result.error) resolve(0)
+      else resolve(result.ascendant)
+    })
+  })
 }
 
 function signFrom(lon) {
   const l=((lon%360)+360)%360
   const idx=Math.floor(l/30)%12
-  return {index:idx,name:SIGNS[idx],lord:SIGN_LORDS[idx],degree:l%30,element:ELEMENTS[idx],symbol:SIGN_SYMBOLS[SIGNS[idx]]}
+  return {index:idx,name:SIGNS[idx],lord:SIGN_LORDS[idx],degree:l%30,symbol:SIGN_SYMBOLS[SIGNS[idx]]}
 }
 
 function nakFrom(lon) {
@@ -238,14 +186,6 @@ function calcDasha(startIdx,birthJD,currentJD) {
   return {current:current.planet,subDasha:currentAntar.planet,pratyantar:pratPlanet,endDate,antarEndDate,allDashas:dashas}
 }
 
-function getCurrentTransits(jd) {
-  const sunS=toSid(sunLon(jd),jd),moonS=toSid(moonLon(jd),jd)
-  const rahuLon=toSid(((125.04-1934.136*(jd-2451545)/36525)%360+360)%360,jd)
-  const raw={Surya:sunS,Chandra:moonS,Rahu:rahuLon,Ketu:(rahuLon+180)%360}
-  for(const p of ['Mangal','Budha','Guru','Shukra','Shani']) raw[p]=toSid(planetLon(p,jd),jd)
-  return Object.entries(raw).map(([name,lon])=>({name,sign:signFrom(lon).name,degree:signFrom(lon).degree.toFixed(1),lon}))
-}
-
 function detectSadeSati(satSignIdx,moonSignIdx) {
   const diff=Math.abs(satSignIdx-moonSignIdx)
   const minDiff=Math.min(diff,12-diff)
@@ -264,6 +204,8 @@ app.post('/api/calculate', async (req, res) => {
     const [year,month,day]=dob.split('-').map(Number)
     const [hour,minute]=tob.split(':').map(Number)
     const {lat,lon}=getCoords(pob,req.body.lat,req.body.lon)
+
+    // Convert local time to UTC
     const tzOffsetHours = lon / 15
     const localDecimalHour = hour + minute / 60
     const utcDecimalHour = localDecimalHour - tzOffsetHours
@@ -271,55 +213,100 @@ app.post('/api/calculate', async (req, res) => {
     const utcH = Math.floor(utcDecimalNorm)
     const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
     const birthJD = toJD(year, month, day, utcH, utcM)
-    const currentJD=toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
-    const sunS=toSid(sunLon(birthJD),birthJD)
-    const moonS=toSid(moonLon(birthJD),birthJD)
-    const ascS=calcAsc(birthJD,lat,lon)
-    const ascHouse=signFrom(ascS).index
-    const rawP=[
-      {name:'Surya',abbr:'Su',lon:sunS,retrograde:false},
-      {name:'Chandra',abbr:'Mo',lon:moonS,retrograde:false},
-      {name:'Mangal',abbr:'Ma',lon:toSid(planetLon('Mangal',birthJD),birthJD),retrograde:false},
-      {name:'Budha',abbr:'Me',lon:toSid(planetLon('Budha',birthJD),birthJD),retrograde:false},
-      {name:'Guru',abbr:'Ju',lon:toSid(planetLon('Guru',birthJD),birthJD),retrograde:false},
-      {name:'Shukra',abbr:'Ve',lon:toSid(planetLon('Shukra',birthJD),birthJD),retrograde:false},
-      {name:'Shani',abbr:'Sa',lon:toSid(planetLon('Shani',birthJD),birthJD),retrograde:false},
+    const currentJD = toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
+
+    // Set Lahiri ayanamsha
+    swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0)
+
+    // Get all planet positions using Swiss Ephemeris
+    const [sunLon, moonLon, marsLon, mercLon, jupLon, venLon, satLon, rahuLon] = await Promise.all([
+      getPlanetLon(birthJD, swisseph.SE_SUN),
+      getPlanetLon(birthJD, swisseph.SE_MOON),
+      getPlanetLon(birthJD, swisseph.SE_MARS),
+      getPlanetLon(birthJD, swisseph.SE_MERCURY),
+      getPlanetLon(birthJD, swisseph.SE_JUPITER),
+      getPlanetLon(birthJD, swisseph.SE_VENUS),
+      getPlanetLon(birthJD, swisseph.SE_SATURN),
+      getPlanetLon(birthJD, swisseph.SE_TRUE_NODE),
+    ])
+
+    const ketuLon = ((rahuLon + 180) % 360)
+    const ascLon = await getAscendant(birthJD, lat, lon)
+    const ascHouse = signFrom(ascLon).index
+
+    const rawP = [
+      {name:'Surya', abbr:'Su', lon:sunLon, retrograde:false},
+      {name:'Chandra', abbr:'Mo', lon:moonLon, retrograde:false},
+      {name:'Mangal', abbr:'Ma', lon:marsLon, retrograde:false},
+      {name:'Budha', abbr:'Me', lon:mercLon, retrograde:false},
+      {name:'Guru', abbr:'Ju', lon:jupLon, retrograde:false},
+      {name:'Shukra', abbr:'Ve', lon:venLon, retrograde:false},
+      {name:'Shani', abbr:'Sa', lon:satLon, retrograde:false},
+      {name:'Rahu', abbr:'Ra', lon:rahuLon, retrograde:true},
+      {name:'Ketu', abbr:'Ke', lon:ketuLon, retrograde:true},
     ]
-    const rahuLon=toSid(((125.04-1934.136*(birthJD-2451545)/36525)%360+360)%360,birthJD)
-    rawP.push({name:'Rahu',abbr:'Ra',lon:rahuLon,retrograde:true})
-    rawP.push({name:'Ketu',abbr:'Ke',lon:(rahuLon+180)%360,retrograde:true})
-    const planets=rawP.map(p=>{
-      const sign=signFrom(p.lon),house=((sign.index-ascHouse+12)%12)+1
-      const dig=dignity(p.name,sign.index)
-      return {...p,sign:sign.name,signIndex:sign.index,degree:sign.degree.toFixed(2),house,dignity:dig,strength:calcStrength(p.name,sign.index,house)}
+
+    const planets = rawP.map(p => {
+      const sign = signFrom(p.lon)
+      const house = ((sign.index - ascHouse + 12) % 12) + 1
+      const dig = dignity(p.name, sign.index)
+      return {...p, sign:sign.name, signIndex:sign.index, degree:sign.degree.toFixed(2), house, dignity:dig, strength:calcStrength(p.name,sign.index,house)}
     })
-    const nak=nakFrom(moonS)
-    const sunMoonDiff=((moonS-sunS)+360)%360
-    const tithiNum=Math.floor(sunMoonDiff/12)+1
-    const TITHIS=['Pratipada','Dwitiya','Tritiya','Chaturthi','Panchami','Shashthi','Saptami','Ashtami','Navami','Dashami','Ekadashi','Dwadashi','Trayodashi','Chaturdashi','Purnima']
-    const tithi=(tithiNum<=15?'Shukla':'Krishna')+' '+TITHIS[(tithiNum-1)%15]
-    const YOGA_NAMES=['Vishkambha','Priti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma','Dhriti','Shula','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra','Siddhi','Vyatipata','Variyan','Parigha','Shiva','Siddha','Sadhya','Shubha','Shukla','Brahma','Indra','Vaidhriti']
-    const yoga=YOGA_NAMES[Math.floor(((sunS+moonS)%360)/(360/27))%27]
-    const KARANA=['Bava','Balava','Kaulava','Taitila','Garaja','Vanija','Vishti','Shakuni','Chatushpada','Naga','Kimstughna']
-    const karana=KARANA[Math.floor(sunMoonDiff/6)%11]
-    const houses=Array.from({length:12},(_,i)=>({house:i+1,sign:SIGNS[(ascHouse+i)%12],lord:SIGN_LORDS[(ascHouse+i)%12],signIndex:(ascHouse+i)%12}))
-    const dashaStartIdx=DASHA_ORDER.indexOf(NAKSHATRAS[nak.index].lord)
-    const ascSign=signFrom(ascS)
-    const dasha=calcDasha(dashaStartIdx,birthJD,currentJD)
-    const {yogas,doshas}=detectYogas(planets,houses)
-    const currentTransits=getCurrentTransits(currentJD)
-    const satTransit=currentTransits.find(t=>t.name==='Shani')
-    const moonSign=signFrom(moonS)
-    const sadeSati=satTransit?detectSadeSati(signFrom(satTransit.lon).index,moonSign.index):{active:false}
-    const ashtakavarga=Array.from({length:12},(_,i)=>({house:i+1,sign:SIGNS[(ascHouse+i)%12],score:Math.floor(Math.random()*4)+3}))
-    const kundali={
-      ascendant:{sign:ascSign.name,degree:parseFloat((ascS%30).toFixed(2)),symbol:SIGN_SYMBOLS[ascSign.name],signIndex:ascHouse},
+
+    const moonS = moonLon
+    const sunS = sunLon
+    const nak = nakFrom(moonS)
+    const sunMoonDiff = ((moonS - sunS) + 360) % 360
+    const tithiNum = Math.floor(sunMoonDiff / 12) + 1
+    const TITHIS = ['Pratipada','Dwitiya','Tritiya','Chaturthi','Panchami','Shashthi','Saptami','Ashtami','Navami','Dashami','Ekadashi','Dwadashi','Trayodashi','Chaturdashi','Purnima']
+    const tithi = (tithiNum<=15?'Shukla':'Krishna')+' '+TITHIS[(tithiNum-1)%15]
+    const YOGA_NAMES = ['Vishkambha','Priti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma','Dhriti','Shula','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra','Siddhi','Vyatipata','Variyan','Parigha','Shiva','Siddha','Sadhya','Shubha','Shukla','Brahma','Indra','Vaidhriti']
+    const yoga = YOGA_NAMES[Math.floor(((sunS+moonS)%360)/(360/27))%27]
+    const KARANA = ['Bava','Balava','Kaulava','Taitila','Garaja','Vanija','Vishti','Shakuni','Chatushpada','Naga','Kimstughna']
+    const karana = KARANA[Math.floor(sunMoonDiff/6)%11]
+    const houses = Array.from({length:12},(_,i)=>({house:i+1,sign:SIGNS[(ascHouse+i)%12],lord:SIGN_LORDS[(ascHouse+i)%12],signIndex:(ascHouse+i)%12}))
+    const dashaStartIdx = DASHA_ORDER.indexOf(NAKSHATRAS[nak.index].lord)
+    const ascSign = signFrom(ascLon)
+    const dasha = calcDasha(dashaStartIdx, birthJD, currentJD)
+    const {yogas,doshas} = detectYogas(planets, houses)
+
+    // Current transits
+    swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0)
+    const [cSun,cMoon,cMars,cMerc,cJup,cVen,cSat,cRahu] = await Promise.all([
+      getPlanetLon(currentJD, swisseph.SE_SUN),
+      getPlanetLon(currentJD, swisseph.SE_MOON),
+      getPlanetLon(currentJD, swisseph.SE_MARS),
+      getPlanetLon(currentJD, swisseph.SE_MERCURY),
+      getPlanetLon(currentJD, swisseph.SE_JUPITER),
+      getPlanetLon(currentJD, swisseph.SE_VENUS),
+      getPlanetLon(currentJD, swisseph.SE_SATURN),
+      getPlanetLon(currentJD, swisseph.SE_TRUE_NODE),
+    ])
+    const currentTransits = [
+      {name:'Surya',sign:signFrom(cSun).name,degree:signFrom(cSun).degree.toFixed(1),lon:cSun},
+      {name:'Chandra',sign:signFrom(cMoon).name,degree:signFrom(cMoon).degree.toFixed(1),lon:cMoon},
+      {name:'Mangal',sign:signFrom(cMars).name,degree:signFrom(cMars).degree.toFixed(1),lon:cMars},
+      {name:'Budha',sign:signFrom(cMerc).name,degree:signFrom(cMerc).degree.toFixed(1),lon:cMerc},
+      {name:'Guru',sign:signFrom(cJup).name,degree:signFrom(cJup).degree.toFixed(1),lon:cJup},
+      {name:'Shukra',sign:signFrom(cVen).name,degree:signFrom(cVen).degree.toFixed(1),lon:cVen},
+      {name:'Shani',sign:signFrom(cSat).name,degree:signFrom(cSat).degree.toFixed(1),lon:cSat},
+      {name:'Rahu',sign:signFrom(cRahu).name,degree:signFrom(cRahu).degree.toFixed(1),lon:cRahu},
+      {name:'Ketu',sign:signFrom((cRahu+180)%360).name,degree:signFrom((cRahu+180)%360).degree.toFixed(1),lon:(cRahu+180)%360},
+    ]
+
+    const satTransit = currentTransits.find(t=>t.name==='Shani')
+    const moonSign = signFrom(moonS)
+    const sadeSati = satTransit ? detectSadeSati(signFrom(satTransit.lon).index, moonSign.index) : {active:false}
+    const ashtakavarga = Array.from({length:12},(_,i)=>({house:i+1,sign:SIGNS[(ascHouse+i)%12],score:Math.floor(Math.random()*4)+3}))
+
+    const kundali = {
+      ascendant:{sign:ascSign.name,degree:parseFloat((ascLon%30).toFixed(2)),symbol:SIGN_SYMBOLS[ascSign.name],signIndex:ascHouse},
       sunSign:signFrom(sunS).name,moonSign:moonSign.name,
       nakshatra:nak.name,nakshatraPada:nak.pada,nakshatraLord:nak.lord,
       nakshatraQuality:nak.quality,nakshatraDeity:nak.deity,
       tithi,yoga,karana,planets,houses,dashaStartIdx,julianDay:birthJD
     }
-    const summary=buildSummary(name||'The native',kundali,dasha,yogas)
+    const summary = buildSummary(name||'The native', kundali, dasha, yogas)
     res.json({...kundali,dasha,yogas,doshas,summary,name,gender,pob,currentTransits,ashtakavarga,sadeSati})
   } catch(err) {
     console.error(err)
@@ -340,17 +327,12 @@ app.post('/api/debug', (req, res) => {
     const utcH = Math.floor(utcDecimalNorm)
     const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
     const jd = toJD(year,month,day,utcH,utcM)
-    const T = (jd - 2451545.0) / 36525.0
-    const L0 = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841.0
-    const M = (134.9633964 + 477198.8675055*T + 0.0087414*T*T)*Math.PI/180
-    const D = (297.8501921 + 445267.1114034*T - 0.0018819*T*T)*Math.PI/180
-    const mainTerm = 6.288774*Math.sin(M)
-    const secondTerm = 1.274027*Math.sin(2*D-M)
-    const moonTropical = moonLon(jd)
-    const ayan = ayanamsha(jd)
-    const moonSid = toSid(moonTropical,jd)
-    const sign = signFrom(moonSid)
-    res.json({utcTime:utcH+':'+utcM,jd,T,L0_mod:((L0%360)+360)%360,mainTerm,secondTerm,moonTropical,ayanamsha:ayan,moonSidereal:moonSid,moonSign:sign.name,moonDegree:sign.degree})
+    swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0)
+    swisseph.swe_calc_ut(jd, swisseph.SE_MOON, swisseph.SEFLG_SIDEREAL, (result) => {
+      const moonSid = result.longitude
+      const sign = signFrom(moonSid)
+      res.json({utcTime:utcH+':'+utcM, jd, moonSidereal:moonSid, moonSign:sign.name, moonDegree:sign.degree})
+    })
   } catch(err) {
     res.status(500).json({error:err.message})
   }
