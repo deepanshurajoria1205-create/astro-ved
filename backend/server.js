@@ -108,8 +108,9 @@ function planetLon(planet,jd) {
 }
 
 function ayanamsha(jd) {
-  const T=(jd-2451545)/36525
-  return 23.85+0.0137*T*100
+  const T = (jd - 2451545.0) / 36525.0
+  // Lahiri ayanamsha — matches Indian Panchang standard exactly
+  return 23.85472 + 1.39722 * T
 }
 function toSid(lon,jd) { return ((lon-ayanamsha(jd))%360+360)%360 }
 
@@ -404,9 +405,12 @@ app.post('/api/chat', async (req, res) => {
     const dl=dasha?.current||'Guru',al=dasha?.subDasha||'Shani'
     const chartSummary=name+', '+ascendant?.sign+' lagna, '+moonSign+' Moon, '+nakshatra+', '+dl+'-'+al+' Dasha, planets: '+planets?.map(p=>p.name+'('+p.sign+',H'+p.house+')').join(' ')
     const historyText=history?.slice(-4).map(h=>(h.role==='user'?'Seeker':'Jyotishi')+': '+h.content).join('\n')||''
-    const promptLines=[
-      'You are Jyotish Acharya, a warm and wise Vedic astrologer.',
-      'Chart: '+chartSummary,
+   const userLoc = req.body.userLocation
+const locContext = userLoc?.display ? 'User is currently located in '+userLoc.display+'.' : ''
+const promptLines=[
+  'You are Jyotish Acharya, a warm and wise Vedic astrologer.',
+  'Chart: '+chartSummary,
+  locContext,
       historyText?'Previous conversation:\n'+historyText:'',
       'Seeker asks: '+question,
       'Answer in 3-5 sentences. Be specific to their chart. Use Sanskrit naturally. Be warm and insightful.'
@@ -418,7 +422,20 @@ app.post('/api/chat', async (req, res) => {
     const data=await response.json()
     if(data.error) throw new Error(data.error.message)
     const text=data.candidates?.[0]?.content?.parts?.[0]?.text
-    res.json({answer:text||'Please try again.'})
+    // Generate contextual follow-up hooks
+const followUpPrompt = 'Based on this answer, suggest 2 short follow-up questions the user might want to ask next. Return as JSON array of strings only, no other text. Example: ["Question 1?","Question 2?"]'
+let followUps = []
+try {
+  const fuRes = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
+    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Answer given: '+text+'\n\n'+followUpPrompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:100}})}
+  )
+  const fuData = await fuRes.json()
+  const fuText = fuData.candidates?.[0]?.content?.parts?.[0]?.text || '[]'
+  followUps = JSON.parse(fuText.replace(/```json|```/g,'').trim())
+} catch(e) { followUps = [] }
+
+res.json({answer:text||'Please try again.', followUps})
   } catch(err) {
     res.status(500).json({error:err.message})
   }

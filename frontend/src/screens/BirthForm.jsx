@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 
 const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
-export default function BirthForm({ onCalculated }) {
+export default function BirthForm({ onCalculated, theme }) {
+  const t = theme || {}
   const [form, setForm] = useState({ name:'', dob:'', tob:'', pob:'', gender:'Male', lat:null, lon:null })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -106,11 +107,11 @@ export default function BirthForm({ onCalculated }) {
   ]
 
   return (
-    <div className="min-h-screen pb-10">
+    <div className={'min-h-screen pb-10 ' + (t.bg || '')}>
       <div className="px-6 pt-10 pb-5 border-b border-amber-900/30">
-        <p className="text-xs tracking-[0.3em] text-amber-800 mb-1">ENTER YOUR</p>
-        <h2 className="text-3xl text-amber-400 font-light">Birth Details</h2>
-        <p className="text-xs text-amber-800 mt-1">जन्म विवरण • For accurate Kundali calculation</p>
+        <p className={'text-xs tracking-[0.3em] mb-1 ' + (t.textMuted||'text-amber-800')}>ENTER YOUR</p>
+<h2 className={'text-3xl font-light ' + (t.textAccent||'text-amber-400')}>Birth Details</h2>
+<p className={'text-xs mt-1 ' + (t.textMuted||'text-amber-800')}>जन्म विवरण • For accurate Kundali calculation</p>
       </div>
 
       <div className="px-5 pt-6 flex flex-col gap-5">
@@ -207,7 +208,7 @@ export default function BirthForm({ onCalculated }) {
         </div>
 
         <button onClick={handleSubmit} disabled={loading}
-          className="w-full bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900 font-bold py-4 rounded-xl text-base tracking-wide mt-2 active:scale-95 transition-transform disabled:opacity-60">
+          className={'w-full font-bold py-4 rounded-xl text-base tracking-wide mt-2 active:scale-95 transition-transform disabled:opacity-60 ' + (t.button||'bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900')}>
           {loading ? '✦ Calculating Kundali...' : '✦ Calculate My Kundali ✦'}
         </button>
       </div>
