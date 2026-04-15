@@ -448,4 +448,29 @@ res.json({answer:text||'Please try again.', followUps})
 })
 
 const PORT=process.env.PORT||3001
+app.post('/api/debug', (req, res) => {
+  const {dob, tob, pob} = req.body
+  const [year,month,day] = dob.split('-').map(Number)
+  const [hour,minute] = tob.split(':').map(Number)
+  const {lat,lon} = getCoords(pob, null, null)
+  const tzOffsetHours = lon / 15
+  const localDecimalHour = hour + minute / 60
+  const utcDecimalHour = localDecimalHour - tzOffsetHours
+  const utcH = Math.floor(((utcDecimalHour % 24) + 24) % 24)
+  const utcM = Math.round((((utcDecimalHour % 24) + 24) % 24 - utcH) * 60)
+  const jd = toJD(year, month, day, utcH, utcM)
+  const moonTropical = moonLon(jd)
+  const ayan = ayanamsha(jd)
+  const moonSid = toSid(moonTropical, jd)
+  const sign = signFrom(moonSid)
+  res.json({
+    utcTime: utcH + ':' + utcM,
+    jd,
+    moonTropical,
+    ayanamsha: ayan,
+    moonSidereal: moonSid,
+    moonSign: sign.name,
+    moonDegree: sign.degree
+  })
+})
 app.listen(PORT,()=>console.log('Jyotish API running on port '+PORT))
