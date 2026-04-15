@@ -358,11 +358,17 @@ app.post('/api/debug', (req, res) => {
     const utcH = Math.floor(utcDecimalNorm)
     const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
     const jd = toJD(year,month,day,utcH,utcM)
+    const T = (jd - 2451545.0) / 36525.0
+    const L0 = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841.0
+    const M = (134.9633964 + 477198.8675055*T + 0.0087414*T*T)*Math.PI/180
+    const D = (297.8501921 + 445267.1114034*T - 0.0018819*T*T)*Math.PI/180
+    const mainTerm = 6.288774*Math.sin(M)
+    const secondTerm = 1.274027*Math.sin(2*D-M)
     const moonTropical = moonLon(jd)
     const ayan = ayanamsha(jd)
     const moonSid = toSid(moonTropical,jd)
     const sign = signFrom(moonSid)
-    res.json({utcTime:utcH+':'+utcM,jd,moonTropical,ayanamsha:ayan,moonSidereal:moonSid,moonSign:sign.name,moonDegree:sign.degree})
+    res.json({utcTime:utcH+':'+utcM,jd,T,L0_mod:((L0%360)+360)%360,mainTerm,secondTerm,moonTropical,ayanamsha:ayan,moonSidereal:moonSid,moonSign:sign.name,moonDegree:sign.degree})
   } catch(err) {
     res.status(500).json({error:err.message})
   }
