@@ -206,7 +206,11 @@ app.post('/api/calculate', async (req, res) => {
     const {lat,lon}=getCoords(pob,req.body.lat,req.body.lon)
 
     // Convert local time to UTC
-    const tzOffsetHours = lon / 15
+    // Use standard timezone offset based on region
+// For India, always use IST = UTC+5:30 = 5.5 hours
+// For other regions, use longitude-based offset
+const isIndia = lat >= 8 && lat <= 37 && lon >= 68 && lon <= 97
+const tzOffsetHours = isIndia ? 5.5 : lon / 15
     const localDecimalHour = hour + minute / 60
     const utcDecimalHour = localDecimalHour - tzOffsetHours
     const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
@@ -320,7 +324,11 @@ app.post('/api/debug', (req, res) => {
     const [year,month,day] = dob.split('-').map(Number)
     const [hour,minute] = tob.split(':').map(Number)
     const {lat,lon} = getCoords(pob,null,null)
-    const tzOffsetHours = lon / 15
+    // Use standard timezone offset based on region
+// For India, always use IST = UTC+5:30 = 5.5 hours
+// For other regions, use longitude-based offset
+const isIndia = lat >= 8 && lat <= 37 && lon >= 68 && lon <= 97
+const tzOffsetHours = isIndia ? 5.5 : lon / 15
     const localDecimalHour = hour + minute / 60
     const utcDecimalHour = localDecimalHour - tzOffsetHours
     const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
