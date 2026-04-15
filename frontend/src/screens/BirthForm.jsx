@@ -107,7 +107,7 @@ export default function BirthForm({ onCalculated, theme }) {
   ]
 
   return (
-    <div className={'min-h-screen pb-10 ' + (t.bg || '')}>
+    <div className="min-h-screen pb-10">
       <div className="px-6 pt-10 pb-5 border-b border-amber-900/30">
         <p className={'text-xs tracking-[0.3em] mb-1 ' + (t.textMuted||'text-amber-800')}>ENTER YOUR</p>
 <h2 className={'text-3xl font-light ' + (t.textAccent||'text-amber-400')}>Birth Details</h2>

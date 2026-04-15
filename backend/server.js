@@ -109,8 +109,8 @@ function planetLon(planet,jd) {
 
 function ayanamsha(jd) {
   const T = (jd - 2451545.0) / 36525.0
-  // Lahiri ayanamsha — matches Indian Panchang standard exactly
-  return 23.85472 + 1.39722 * T
+  // Precise Lahiri ayanamsha matching Drik Panchang standard
+  return 23.85472 + 1.39722 * T + 0.00030 * T * T
 }
 function toSid(lon,jd) { return ((lon-ayanamsha(jd))%360+360)%360 }
 
@@ -235,7 +235,13 @@ app.post('/api/calculate', async (req, res) => {
     const [year,month,day]=dob.split('-').map(Number)
     const [hour,minute]=tob.split(':').map(Number)
     const {lat,lon}=getCoords(pob,req.body.lat,req.body.lon)
-    const birthJD=toJD(year,month,day,hour,minute)
+    // Convert local time to UTC using longitude
+const tzOffsetHours = lon / 15
+const localDecimalHour = hour + minute / 60
+const utcDecimalHour = localDecimalHour - tzOffsetHours
+const utcH = Math.floor(((utcDecimalHour % 24) + 24) % 24)
+const utcM = Math.round((((utcDecimalHour % 24) + 24) % 24 - utcH) * 60)
+const birthJD = toJD(year, month, day, utcH, utcM)
     const currentJD=toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
     const sunS=toSid(sunLon(birthJD),birthJD)
     const moonS=toSid(moonLon(birthJD),birthJD)
