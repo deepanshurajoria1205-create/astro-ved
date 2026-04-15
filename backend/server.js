@@ -83,60 +83,73 @@ function sunLon(jd) {
 
 function moonLon(jd) {
   const T = (jd - 2451545.0) / 36525.0
-  const L0 = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841.0
-  const M = (134.9633964 + 477198.8675055*T + 0.0087414*T*T)*Math.PI/180
-  const Ms = (357.5291092 + 35999.0502909*T - 0.0001536*T*T)*Math.PI/180
-  const F = (93.2720950 + 483202.0175233*T - 0.0036539*T*T)*Math.PI/180
-  const D = (297.8501921 + 445267.1114034*T - 0.0018819*T*T)*Math.PI/180
+  // Mean longitude of Moon (degrees)
+  let L0 = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841.0
+  // Mean anomaly of Moon
+  let M = 134.9633964 + 477198.8675055*T + 0.0087414*T*T + T*T*T/69699.0
+  // Mean anomaly of Sun
+  let Ms = 357.5291092 + 35999.0502909*T - 0.0001536*T*T
+  // Moon argument of latitude
+  let F = 93.2720950 + 483202.0175233*T - 0.0036539*T*T
+  // Mean elongation of Moon
+  let D = 297.8501921 + 445267.1114034*T - 0.0018819*T*T
+
+  // Convert to radians
+  const toRad = d => ((d % 360) + 360) % 360 * Math.PI / 180
+  const Mr = toRad(M)
+  const Msr = toRad(Ms)
+  const Fr = toRad(F)
+  const Dr = toRad(D)
+
   const lon = L0
-    + 6.288774*Math.sin(M)
-    + 1.274027*Math.sin(2*D-M)
-    + 0.658314*Math.sin(2*D)
-    + 0.213618*Math.sin(2*M)
-    - 0.185116*Math.sin(Ms)
-    - 0.114332*Math.sin(2*F)
-    + 0.058793*Math.sin(2*D-2*M)
-    + 0.057066*Math.sin(2*D-Ms-M)
-    + 0.053322*Math.sin(2*D+M)
-    + 0.045758*Math.sin(2*D-Ms)
-    - 0.040923*Math.sin(Ms-M)
-    - 0.034720*Math.sin(D)
-    - 0.030383*Math.sin(Ms+M)
-    + 0.015327*Math.sin(2*D-2*F)
-    - 0.012528*Math.sin(M+2*F)
-    + 0.010980*Math.sin(M-2*F)
-    + 0.010675*Math.sin(4*D-M)
-    + 0.010034*Math.sin(3*M)
-    + 0.008548*Math.sin(4*D-2*M)
-    - 0.007888*Math.sin(2*D+Ms-M)
-    - 0.006766*Math.sin(2*D+Ms)
-    - 0.005163*Math.sin(D-M)
-    + 0.004987*Math.sin(D+Ms)
-    + 0.004036*Math.sin(2*D-Ms+M)
-    + 0.003994*Math.sin(2*D+2*M)
-    + 0.003861*Math.sin(4*D)
-    + 0.003665*Math.sin(2*D-3*M)
-    - 0.002689*Math.sin(Ms-2*M)
-    - 0.002602*Math.sin(2*D-M+2*F)
-    + 0.002390*Math.sin(2*D-Ms-2*M)
-    - 0.002348*Math.sin(D+M)
-    + 0.002236*Math.sin(2*D-2*Ms)
-    - 0.002120*Math.sin(Ms+2*M)
-    - 0.002069*Math.sin(2*Ms)
-    + 0.002048*Math.sin(2*D-2*Ms-M)
-    - 0.001773*Math.sin(2*D+M-2*F)
-    + 0.001215*Math.sin(4*D-Ms-M)
-    - 0.001115*Math.sin(2*M+2*F)
-    - 0.000904*Math.sin(2*D-Ms-2*M)
-    - 0.000713*Math.sin(2*Ms-M)
-    - 0.000700*Math.sin(2*D+2*Ms-M)
-    + 0.000691*Math.sin(2*D+Ms-2*M)
-    + 0.000596*Math.sin(2*D-Ms-2*F)
-    + 0.000549*Math.sin(4*D+M)
-    + 0.000537*Math.sin(4*M)
-    + 0.000520*Math.sin(4*D-Ms)
-    - 0.000487*Math.sin(D-2*M)
-  return ((lon%360)+360)%360
+    + 6.288774*Math.sin(Mr)
+    + 1.274027*Math.sin(2*Dr-Mr)
+    + 0.658314*Math.sin(2*Dr)
+    + 0.213618*Math.sin(2*Mr)
+    - 0.185116*Math.sin(Msr)
+    - 0.114332*Math.sin(2*Fr)
+    + 0.058793*Math.sin(2*Dr-2*Mr)
+    + 0.057066*Math.sin(2*Dr-Msr-Mr)
+    + 0.053322*Math.sin(2*Dr+Mr)
+    + 0.045758*Math.sin(2*Dr-Msr)
+    - 0.040923*Math.sin(Msr-Mr)
+    - 0.034720*Math.sin(Dr)
+    - 0.030383*Math.sin(Msr+Mr)
+    + 0.015327*Math.sin(2*Dr-2*Fr)
+    - 0.012528*Math.sin(Mr+2*Fr)
+    + 0.010980*Math.sin(Mr-2*Fr)
+    + 0.010675*Math.sin(4*Dr-Mr)
+    + 0.010034*Math.sin(3*Mr)
+    + 0.008548*Math.sin(4*Dr-2*Mr)
+    - 0.007888*Math.sin(2*Dr+Msr-Mr)
+    - 0.006766*Math.sin(2*Dr+Msr)
+    - 0.005163*Math.sin(Dr-Mr)
+    + 0.004987*Math.sin(Dr+Msr)
+    + 0.004036*Math.sin(2*Dr-Msr+Mr)
+    + 0.003994*Math.sin(2*Dr+2*Mr)
+    + 0.003861*Math.sin(4*Dr)
+    + 0.003665*Math.sin(2*Dr-3*Mr)
+    - 0.002689*Math.sin(Msr-2*Mr)
+    - 0.002602*Math.sin(2*Dr-Mr+2*Fr)
+    + 0.002390*Math.sin(2*Dr-Msr-2*Mr)
+    - 0.002348*Math.sin(Dr+Mr)
+    + 0.002236*Math.sin(2*Dr-2*Msr)
+    - 0.002120*Math.sin(Msr+2*Mr)
+    - 0.002069*Math.sin(2*Msr)
+    + 0.002048*Math.sin(2*Dr-2*Msr-Mr)
+    - 0.001773*Math.sin(2*Dr+Mr-2*Fr)
+    + 0.001215*Math.sin(4*Dr-Msr-Mr)
+    - 0.001115*Math.sin(2*Mr+2*Fr)
+    - 0.000904*Math.sin(2*Dr-Msr-2*Mr)
+    - 0.000713*Math.sin(2*Msr-Mr)
+    - 0.000700*Math.sin(2*Dr+2*Msr-Mr)
+    + 0.000691*Math.sin(2*Dr+Msr-2*Mr)
+    + 0.000596*Math.sin(2*Dr-Msr-2*Fr)
+    + 0.000549*Math.sin(4*Dr+Mr)
+    + 0.000537*Math.sin(4*Mr)
+    + 0.000520*Math.sin(4*Dr-Msr)
+    - 0.000487*Math.sin(Dr-2*Mr)
+  return ((lon % 360) + 360) % 360
 }
 
 function planetLon(planet,jd) {
