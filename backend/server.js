@@ -83,67 +83,62 @@ function sunLon(jd) {
 
 function moonLon(jd) {
   const T = (jd - 2451545.0) / 36525.0
-  // Mean longitude
-  const L0 = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T + T * T * T / 538841.0
-  // Mean anomaly of Moon
-  const M = (134.9633964 + 477198.8675055 * T + 0.0087414 * T * T + T * T * T / 69699.0) * Math.PI / 180
-  // Mean anomaly of Sun
-  const Ms = (357.5291092 + 35999.0502909 * T - 0.0001536 * T * T) * Math.PI / 180
-  // Moon argument of latitude
-  const F = (93.2720950 + 483202.0175233 * T - 0.0036539 * T * T) * Math.PI / 180
-  // Mean elongation of Moon
-  const D = (297.8501921 + 445267.1114034 * T - 0.0018819 * T * T) * Math.PI / 180
-
+  const L0 = 218.3164477 + 481267.88123421*T - 0.0015786*T*T + T*T*T/538841.0
+  const M = (134.9633964 + 477198.8675055*T + 0.0087414*T*T)*Math.PI/180
+  const Ms = (357.5291092 + 35999.0502909*T - 0.0001536*T*T)*Math.PI/180
+  const F = (93.2720950 + 483202.0175233*T - 0.0036539*T*T)*Math.PI/180
+  const D = (297.8501921 + 445267.1114034*T - 0.0018819*T*T)*Math.PI/180
   const lon = L0
-    + 6.288774 * Math.sin(M)
-    + 1.274027 * Math.sin(2*D - M)
-    + 0.658314 * Math.sin(2*D)
-    + 0.213618 * Math.sin(2*M)
-    - 0.185116 * Math.sin(Ms)
-    - 0.114332 * Math.sin(2*F)
-    + 0.058793 * Math.sin(2*D - 2*M)
-    + 0.057066 * Math.sin(2*D - Ms - M)
-    + 0.053322 * Math.sin(2*D + M)
-    + 0.045758 * Math.sin(2*D - Ms)
-    - 0.040923 * Math.sin(Ms - M)
-    - 0.034720 * Math.sin(D)
-    - 0.030383 * Math.sin(Ms + M)
-    + 0.015327 * Math.sin(2*D - 2*F)
-    - 0.012528 * Math.sin(M + 2*F)
-    + 0.010980 * Math.sin(M - 2*F)
-    + 0.010675 * Math.sin(4*D - M)
-    + 0.010034 * Math.sin(3*M)
-    + 0.008548 * Math.sin(4*D - 2*M)
-    - 0.007888 * Math.sin(2*D + Ms - M)
-    - 0.006766 * Math.sin(2*D + Ms)
-    - 0.005163 * Math.sin(D - M)
-    + 0.004987 * Math.sin(D + Ms)
-    + 0.004036 * Math.sin(2*D - Ms + M)
-    + 0.003994 * Math.sin(2*D + 2*M)
-    + 0.003861 * Math.sin(4*D)
-    + 0.003665 * Math.sin(2*D - 3*M)
-    - 0.002689 * Math.sin(Ms - 2*M)
-    - 0.002602 * Math.sin(2*D - M + 2*F)
-    + 0.002390 * Math.sin(2*D - Ms - 2*M)
-    - 0.002348 * Math.sin(D + M)
-    + 0.002236 * Math.sin(2*D - 2*Ms)
-    - 0.002120 * Math.sin(Ms + 2*M)
-    - 0.002069 * Math.sin(2*Ms)
-    + 0.002048 * Math.sin(2*D - 2*Ms - M)
-    - 0.001773 * Math.sin(2*D + M - 2*F)
-    + 0.001215 * Math.sin(4*D - Ms - M)
-    - 0.001115 * Math.sin(2*M + 2*F)
-    - 0.000904 * Math.sin(2*D - Ms - 2*M)
-    - 0.000713 * Math.sin(2*Ms - M)
-    - 0.000700 * Math.sin(2*D + 2*Ms - M)
-    + 0.000691 * Math.sin(2*D + Ms - 2*M)
-    + 0.000596 * Math.sin(2*D - Ms - 2*F)
-    + 0.000549 * Math.sin(4*D + M)
-    + 0.000537 * Math.sin(4*M)
-    + 0.000520 * Math.sin(4*D - Ms)
-    - 0.000487 * Math.sin(D - 2*M)
-  return ((lon % 360) + 360) % 360
+    + 6.288774*Math.sin(M)
+    + 1.274027*Math.sin(2*D-M)
+    + 0.658314*Math.sin(2*D)
+    + 0.213618*Math.sin(2*M)
+    - 0.185116*Math.sin(Ms)
+    - 0.114332*Math.sin(2*F)
+    + 0.058793*Math.sin(2*D-2*M)
+    + 0.057066*Math.sin(2*D-Ms-M)
+    + 0.053322*Math.sin(2*D+M)
+    + 0.045758*Math.sin(2*D-Ms)
+    - 0.040923*Math.sin(Ms-M)
+    - 0.034720*Math.sin(D)
+    - 0.030383*Math.sin(Ms+M)
+    + 0.015327*Math.sin(2*D-2*F)
+    - 0.012528*Math.sin(M+2*F)
+    + 0.010980*Math.sin(M-2*F)
+    + 0.010675*Math.sin(4*D-M)
+    + 0.010034*Math.sin(3*M)
+    + 0.008548*Math.sin(4*D-2*M)
+    - 0.007888*Math.sin(2*D+Ms-M)
+    - 0.006766*Math.sin(2*D+Ms)
+    - 0.005163*Math.sin(D-M)
+    + 0.004987*Math.sin(D+Ms)
+    + 0.004036*Math.sin(2*D-Ms+M)
+    + 0.003994*Math.sin(2*D+2*M)
+    + 0.003861*Math.sin(4*D)
+    + 0.003665*Math.sin(2*D-3*M)
+    - 0.002689*Math.sin(Ms-2*M)
+    - 0.002602*Math.sin(2*D-M+2*F)
+    + 0.002390*Math.sin(2*D-Ms-2*M)
+    - 0.002348*Math.sin(D+M)
+    + 0.002236*Math.sin(2*D-2*Ms)
+    - 0.002120*Math.sin(Ms+2*M)
+    - 0.002069*Math.sin(2*Ms)
+    + 0.002048*Math.sin(2*D-2*Ms-M)
+    - 0.001773*Math.sin(2*D+M-2*F)
+    + 0.001215*Math.sin(4*D-Ms-M)
+    - 0.001115*Math.sin(2*M+2*F)
+    - 0.000904*Math.sin(2*D-Ms-2*M)
+    - 0.000713*Math.sin(2*Ms-M)
+    - 0.000700*Math.sin(2*D+2*Ms-M)
+    + 0.000691*Math.sin(2*D+Ms-2*M)
+    + 0.000596*Math.sin(2*D-Ms-2*F)
+    + 0.000549*Math.sin(4*D+M)
+    + 0.000537*Math.sin(4*M)
+    + 0.000520*Math.sin(4*D-Ms)
+    - 0.000487*Math.sin(D-2*M)
+  return ((lon%360)+360)%360
 }
+
 function planetLon(planet,jd) {
   const T=(jd-2451545)/36525
   const p={
@@ -161,9 +156,9 @@ function planetLon(planet,jd) {
 
 function ayanamsha(jd) {
   const T = (jd - 2451545.0) / 36525.0
-  // Precise Lahiri ayanamsha matching Drik Panchang standard
-  return 23.85472 + 1.39722 * T + 0.00030 * T * T
+  return 23.85472 + 1.39722*T + 0.00030*T*T
 }
+
 function toSid(lon,jd) { return ((lon-ayanamsha(jd))%360+360)%360 }
 
 function calcAsc(jd,lat,lon) {
@@ -215,7 +210,7 @@ function calcStrength(planet,si,house) {
 function detectYogas(planets,houses) {
   const yogas=[],doshas=[]
   const p=n=>planets.find(x=>x.name===n)
-  const KENDRAS=[1,4,7,10],TRIKONAS=[1,5,9]
+  const KENDRAS=[1,4,7,10]
   const moon=p('Chandra'),sun=p('Surya'),jup=p('Guru'),mar=p('Mangal'),ven=p('Shukra'),mer=p('Budha')
   if(moon&&jup){
     const d=Math.abs(moon.house-jup.house),r=d===0?1:(d>6?12-d+1:d+1)
@@ -277,7 +272,7 @@ function detectSadeSati(satSignIdx,moonSignIdx) {
 
 function buildSummary(name,k,dasha,yogas) {
   const yogaStr=yogas?.slice(0,2).map(y=>y.name).join(' and ')||'benefic combinations'
-  return name + ' has ' + k.ascendant.sign + ' lagna with Moon in ' + k.moonSign + ' (' + k.nakshatra + ' Nakshatra, Pada ' + k.nakshatraPada + '). Currently in ' + dasha.current + '-' + dasha.subDasha + ' Dasha until ' + dasha.endDate + '. ' + yogaStr + ' provide powerful elevating influences throughout this lifetime.'
+  return name+' has '+k.ascendant.sign+' lagna with Moon in '+k.moonSign+' ('+k.nakshatra+' Nakshatra, Pada '+k.nakshatraPada+'). Currently in '+dasha.current+'-'+dasha.subDasha+' Dasha until '+dasha.endDate+'. '+yogaStr+' provide powerful elevating influences throughout this lifetime.'
 }
 
 app.post('/api/calculate', async (req, res) => {
@@ -287,15 +282,13 @@ app.post('/api/calculate', async (req, res) => {
     const [year,month,day]=dob.split('-').map(Number)
     const [hour,minute]=tob.split(':').map(Number)
     const {lat,lon}=getCoords(pob,req.body.lat,req.body.lon)
-    // Convert local time to UTC using longitude
-const tzOffsetHours = lon / 15
-const localDecimalHour = hour + minute / 60
-const utcDecimalHour = localDecimalHour - tzOffsetHours
-const utcH = Math.floor(((utcDecimalHour % 24) + 24) % 24)
-const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
-const utcH = Math.floor(utcDecimalNorm)
-const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
-const birthJD = toJD(year, month, day, utcH, utcM)
+    const tzOffsetHours = lon / 15
+    const localDecimalHour = hour + minute / 60
+    const utcDecimalHour = localDecimalHour - tzOffsetHours
+    const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
+    const utcH = Math.floor(utcDecimalNorm)
+    const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
+    const birthJD = toJD(year, month, day, utcH, utcM)
     const currentJD=toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
     const sunS=toSid(sunLon(birthJD),birthJD)
     const moonS=toSid(moonLon(birthJD),birthJD)
@@ -352,6 +345,29 @@ const birthJD = toJD(year, month, day, utcH, utcM)
   }
 })
 
+app.post('/api/debug', (req, res) => {
+  try {
+    const {dob,tob,pob} = req.body
+    const [year,month,day] = dob.split('-').map(Number)
+    const [hour,minute] = tob.split(':').map(Number)
+    const {lat,lon} = getCoords(pob,null,null)
+    const tzOffsetHours = lon / 15
+    const localDecimalHour = hour + minute / 60
+    const utcDecimalHour = localDecimalHour - tzOffsetHours
+    const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
+    const utcH = Math.floor(utcDecimalNorm)
+    const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
+    const jd = toJD(year,month,day,utcH,utcM)
+    const moonTropical = moonLon(jd)
+    const ayan = ayanamsha(jd)
+    const moonSid = toSid(moonTropical,jd)
+    const sign = signFrom(moonSid)
+    res.json({utcTime:utcH+':'+utcM,jd,moonTropical,ayanamsha:ayan,moonSidereal:moonSid,moonSign:sign.name,moonDegree:sign.degree})
+  } catch(err) {
+    res.status(500).json({error:err.message})
+  }
+})
+
 app.post('/api/horoscope', (req, res) => {
   const {chartData,period}=req.body
   if(!chartData||!period) return res.status(400).json({error:'Missing data'})
@@ -359,28 +375,21 @@ app.post('/api/horoscope', (req, res) => {
   const dl=dasha?.current||'Guru',al=dasha?.subDasha||'Shani'
   const h10=houses?.find(h=>h.house===10),h7=houses?.find(h=>h.house===7)
   const lines=[
-    '# ' + period.charAt(0).toUpperCase()+period.slice(1) + ' Horoscope — ' + (name||'Native'),
-    '*' + (ascendant?.sign||'') + ' Lagna · ' + moonSign + ' Rashi · ' + nakshatra + ' Nakshatra*',
-    '',
-    '## Cosmic Theme',
-    'The ' + dl + '-' + al + ' Dasha shapes this period with themes of growth and transformation.',
-    '',
-    '## Career & Finance',
-    'The 10th house lord ' + (h10?.lord||'') + ' indicates professional focus this period.',
-    '',
-    '## Relationships',
-    'The 7th house lord ' + (h7?.lord||'') + ' brings relationship themes to the fore.',
-    '',
-    '## Health',
-    'Maintain steady routines. Your ' + moonSign + ' Moon benefits from regular rest.',
-    '',
-    '## Spirituality',
-    nakshatra + ' Nakshatra carries deep spiritual energy. Daily meditation is recommended.',
-    '',
-    '## Remedies',
-    'Recite the Gayatri Mantra 108 times at dawn. Honour the ' + dl + ' Mahadasha through its practices.',
-    '',
-    '*Om Tat Sat*'
+    '# '+period.charAt(0).toUpperCase()+period.slice(1)+' Horoscope — '+(name||'Native'),
+    '*'+(ascendant?.sign||'')+' Lagna · '+moonSign+' Rashi · '+nakshatra+' Nakshatra*',
+    '','## Cosmic Theme',
+    'The '+dl+'-'+al+' Dasha shapes this period with themes of growth and transformation.',
+    '','## Career & Finance',
+    'The 10th house lord '+(h10?.lord||'')+' indicates professional focus this period.',
+    '','## Relationships',
+    'The 7th house lord '+(h7?.lord||'')+' brings relationship themes to the fore.',
+    '','## Health',
+    'Maintain steady routines. Your '+moonSign+' Moon benefits from regular rest.',
+    '','## Spirituality',
+    nakshatra+' Nakshatra carries deep spiritual energy. Daily meditation is recommended.',
+    '','## Remedies',
+    'Recite the Gayatri Mantra 108 times at dawn. Honour the '+dl+' Mahadasha through its practices.',
+    '','*Om Tat Sat*'
   ]
   res.json({horoscope:lines.join('\n'),period})
 })
@@ -399,52 +408,33 @@ app.post('/api/ai-horoscope', async (req, res) => {
     const h10=houses?.find(h=>h.house===10)
     const h7=houses?.find(h=>h.house===7)
     const h6=houses?.find(h=>h.house===6)
-
-    let periodFocus = 'this week only. Mention specific days like Monday, Thursday, Saturday.'
+    let periodFocus='this week only. Mention specific days like Monday, Thursday, Saturday.'
     if(period==='monthly') periodFocus='this month. Divide into early (days 1-10), middle (days 11-20) and late (days 21-30) phases.'
     if(period==='annual') periodFocus='the full year 2026. Cover all 4 quarters with specific months.'
-
-    const promptLines = [
+    const promptLines=[
       'You are Jyotish Acharya, a master Vedic astrologer with 40 years of experience.',
       'Speak with authority, warmth and genuine spiritual insight.',
-      '',
-      'BIRTH CHART:',
-      'Name: ' + (name||'the native'),
-      'Lagna: ' + (ascendant?.sign||'') + ' | Moon: ' + moonSign + ' | Nakshatra: ' + nakshatra + ' Pada ' + nakshatraPada + ' (lord: ' + nakshatraLord + ', deity: ' + (nakshatraDeity||'') + ')',
-      'Quality: ' + (nakshatraQuality||''),
-      'Dasha: ' + dl + ' Mahadasha, ' + al + ' Antardasha, ' + pl + ' Pratyantardasha (ends ' + dasha?.endDate + ')',
-      'Strong planets: ' + (strongPlanets||'none'),
-      'Yogas: ' + yogaList + ' | Doshas: ' + doshaList,
-      '10th house lord: ' + (h10?.lord||'') + ' | 7th house lord: ' + (h7?.lord||'') + ' | 6th house lord: ' + (h6?.lord||''),
-      'Sade Sati: ' + (sadeSati?.active ? 'YES - ' + sadeSati.phase + ' phase' : 'No'),
-      '',
-      'Write a complete ' + period + ' horoscope focusing on ' + periodFocus,
-      '',
-      'Use these exact section headers:',
-      '## Cosmic Theme',
-      '## Career & Finance (Artha)',
-      '## Relationships & Love (Kama)',
-      '## Health & Vitality (Arogya)',
-      '## Spirituality & Inner Growth (Dharma-Moksha)',
-      '## Vedic Remedies (Upaya)',
-      '',
-      'Each section: 4-5 sentences. Use Sanskrit terms naturally.',
+      '','BIRTH CHART:',
+      'Name: '+(name||'the native'),
+      'Lagna: '+(ascendant?.sign||'')+' | Moon: '+moonSign+' | Nakshatra: '+nakshatra+' Pada '+nakshatraPada+' (lord: '+nakshatraLord+', deity: '+(nakshatraDeity||'')+')',
+      'Quality: '+(nakshatraQuality||''),
+      'Dasha: '+dl+' Mahadasha, '+al+' Antardasha, '+pl+' Pratyantardasha (ends '+dasha?.endDate+')',
+      'Strong planets: '+(strongPlanets||'none'),
+      'Yogas: '+yogaList+' | Doshas: '+doshaList,
+      '10th house lord: '+(h10?.lord||'')+' | 7th house lord: '+(h7?.lord||'')+' | 6th house lord: '+(h6?.lord||''),
+      'Sade Sati: '+(sadeSati?.active?'YES - '+sadeSati.phase+' phase':'No'),
+      '','Write a complete '+period+' horoscope focusing on '+periodFocus,
+      '','Use these exact section headers:',
+      '## Cosmic Theme','## Career & Finance (Artha)',
+      '## Relationships & Love (Kama)','## Health & Vitality (Arogya)',
+      '## Spirituality & Inner Growth (Dharma-Moksha)','## Vedic Remedies (Upaya)',
+      '','Each section: 4-5 sentences. Use Sanskrit terms naturally.',
       'Be specific to this persons actual chart - mention their planets, signs and houses.',
-      'End with a Sanskrit blessing line.',
-      'Total: 400-500 words.'
+      'End with a Sanskrit blessing line.','Total: 400-500 words.'
     ]
-    const prompt = promptLines.join('\n')
-
     const response=await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
-      {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          contents:[{parts:[{text:prompt}]}],
-          generationConfig:{temperature:0.7,maxOutputTokens:2000,topP:0.9}
-        })
-      }
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:promptLines.join('\n')}]}],generationConfig:{temperature:0.7,maxOutputTokens:2000,topP:0.9}})}
     )
     const data=await response.json()
     if(data.error) throw new Error(data.error.message)
@@ -465,12 +455,12 @@ app.post('/api/chat', async (req, res) => {
     const dl=dasha?.current||'Guru',al=dasha?.subDasha||'Shani'
     const chartSummary=name+', '+ascendant?.sign+' lagna, '+moonSign+' Moon, '+nakshatra+', '+dl+'-'+al+' Dasha, planets: '+planets?.map(p=>p.name+'('+p.sign+',H'+p.house+')').join(' ')
     const historyText=history?.slice(-4).map(h=>(h.role==='user'?'Seeker':'Jyotishi')+': '+h.content).join('\n')||''
-   const userLoc = req.body.userLocation
-const locContext = userLoc?.display ? 'User is currently located in '+userLoc.display+'.' : ''
-const promptLines=[
-  'You are Jyotish Acharya, a warm and wise Vedic astrologer.',
-  'Chart: '+chartSummary,
-  locContext,
+    const userLoc=req.body.userLocation
+    const locContext=userLoc?.display?'User is currently located in '+userLoc.display+'.':''
+    const promptLines=[
+      'You are Jyotish Acharya, a warm and wise Vedic astrologer.',
+      'Chart: '+chartSummary,
+      locContext,
       historyText?'Previous conversation:\n'+historyText:'',
       'Seeker asks: '+question,
       'Answer in 3-5 sentences. Be specific to their chart. Use Sanskrit naturally. Be warm and insightful.'
@@ -482,50 +472,21 @@ const promptLines=[
     const data=await response.json()
     if(data.error) throw new Error(data.error.message)
     const text=data.candidates?.[0]?.content?.parts?.[0]?.text
-    // Generate contextual follow-up hooks
-const followUpPrompt = 'Based on this answer, suggest 2 short follow-up questions the user might want to ask next. Return as JSON array of strings only, no other text. Example: ["Question 1?","Question 2?"]'
-let followUps = []
-try {
-  const fuRes = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
-    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Answer given: '+text+'\n\n'+followUpPrompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:100}})}
-  )
-  const fuData = await fuRes.json()
-  const fuText = fuData.candidates?.[0]?.content?.parts?.[0]?.text || '[]'
-  followUps = JSON.parse(fuText.replace(/```json|```/g,'').trim())
-} catch(e) { followUps = [] }
-
-res.json({answer:text||'Please try again.', followUps})
+    let followUps=[]
+    try {
+      const fuRes=await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
+        {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Based on this answer, suggest 2 short follow-up questions. Return as JSON array only: ["Q1?","Q2?"]\n\nAnswer: '+text}]}],generationConfig:{temperature:0.7,maxOutputTokens:100}})}
+      )
+      const fuData=await fuRes.json()
+      const fuText=fuData.candidates?.[0]?.content?.parts?.[0]?.text||'[]'
+      followUps=JSON.parse(fuText.replace(/```json|```/g,'').trim())
+    } catch(e) { followUps=[] }
+    res.json({answer:text||'Please try again.',followUps})
   } catch(err) {
     res.status(500).json({error:err.message})
   }
 })
 
 const PORT=process.env.PORT||3001
-app.post('/api/debug', (req, res) => {
-  const {dob, tob, pob} = req.body
-  const [year,month,day] = dob.split('-').map(Number)
-  const [hour,minute] = tob.split(':').map(Number)
-  const {lat,lon} = getCoords(pob, null, null)
-  const tzOffsetHours = lon / 15
-const localDecimalHour = hour + minute / 60
-const utcDecimalHour = localDecimalHour - tzOffsetHours
-const utcDecimalNorm = ((utcDecimalHour % 24) + 24) % 24
-const utcH = Math.floor(utcDecimalNorm)
-const utcM = Math.floor((utcDecimalNorm - utcH) * 60)
-const birthJD = toJD(year, month, day, utcH, utcM)
-  const moonTropical = moonLon(jd)
-  const ayan = ayanamsha(jd)
-  const moonSid = toSid(moonTropical, jd)
-  const sign = signFrom(moonSid)
-  res.json({
-    utcTime: utcH + ':' + utcM,
-    jd,
-    moonTropical,
-    ayanamsha: ayan,
-    moonSidereal: moonSid,
-    moonSign: sign.name,
-    moonDegree: sign.degree
-  })
-})
 app.listen(PORT,()=>console.log('Jyotish API running on port '+PORT))
