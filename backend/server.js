@@ -136,7 +136,73 @@ function calcStrength(planet,si,house) {
   if([6,8,12].includes(house)) s-=15
   return Math.max(0,Math.min(100,s))
 }
+function calcAspects(planets) {
+  const aspects = []
+  const SPECIAL_ASPECTS = {
+    Mangal: [4, 7, 8],   // Mars aspects 4th, 7th, 8th from itself
+    Guru:   [5, 7, 9],   // Jupiter aspects 5th, 7th, 9th
+    Shani:  [3, 7, 10],  // Saturn aspects 3rd, 7th, 10th
+  }
 
+  planets.forEach(p => {
+    const specialHouses = SPECIAL_ASPECTS[p.name]
+    if (!specialHouses) return
+    specialHouses.forEach(aspectHouse => {
+      const targetHouse = ((p.house + aspectHouse - 2) % 12) + 1
+      const aspectedPlanets = planets.filter(x => x.house === targetHouse && x.name !== p.name)
+      aspects.push({
+        from: p.name,
+        fromHouse: p.house,
+        toHouse: targetHouse,
+        type: aspectHouse + 'th aspect',
+        aspectedPlanets: aspectedPlanets.map(x => x.name)
+      })
+    })
+  })
+  return aspects
+}
+
+function analyzeHouseLords(planets, houses) {
+  const analysis = []
+  const HOUSE_MEANINGS = {
+    1:'self and personality', 2:'wealth and family', 3:'courage and siblings',
+    4:'home and mother', 5:'children and intelligence', 6:'enemies and health',
+    7:'marriage and partnerships', 8:'longevity and transformation',
+    9:'fortune and dharma', 10:'career and status', 11:'gains and friends',
+    12:'losses and liberation'
+  }
+  houses.forEach(h => {
+    const lord = planets.find(p => p.name === h.lord)
+    if (!lord) return
+    analysis.push({
+      house: h.house,
+      sign: h.sign,
+      lord: h.lord,
+      lordInHouse: lord.house,
+      lordInSign: lord.sign,
+      meaning: 'Lord of ' + HOUSE_MEANINGS[h.house] + ' is in house ' + lord.house + ' (' + HOUSE_MEANINGS[lord.house] + ')',
+      dignity: lord.dignity
+    })
+  })
+  return analysis
+}
+
+function calcTransitEffects(currentTransits, birthAscHouse) {
+  const effects = []
+  currentTransits.forEach(t => {
+    const transitSign = t.sign
+    const SIGNS_LIST = ['Mesha','Vrishabha','Mithuna','Karka','Simha','Kanya','Tula','Vrischika','Dhanu','Makara','Kumbha','Meena']
+    const transitSignIdx = SIGNS_LIST.indexOf(transitSign)
+    const houseFromLagna = ((transitSignIdx - birthAscHouse + 12) % 12) + 1
+    effects.push({
+      planet: t.name,
+      currentSign: transitSign,
+      houseFromLagna,
+      degree: t.degree
+    })
+  })
+  return effects
+}
 function detectYogas(planets,houses) {
   const yogas=[],doshas=[]
   const p=n=>planets.find(x=>x.name===n)
@@ -429,43 +495,94 @@ app.post('/api/chat', async (req, res) => {
   try {
     const {question,chartData,history}=req.body
     if(!question||!chartData) return res.status(400).json({error:'Missing data'})
-    const {ascendant,moonSign,nakshatra,dasha,planets,houses,name}=chartData
+    const {ascendant,moonSign,nakshatra,nakshatraPada,dasha,yogas,doshas,planets,houses,name,aspects,houseLordAnalysis,demographics}=chartData
     const dl=dasha?.current||'Guru',al=dasha?.subDasha||'Shani'
-    const chartSummary=name+', '+ascendant?.sign+' lagna, '+moonSign+' Moon, '+nakshatra+', '+dl+'-'+al+' Dasha, planets: '+planets?.map(p=>p.name+'('+p.sign+',H'+p.house+')').join(' ')
-    const historyText=history?.slice(-4).map(h=>(h.role==='user'?'Seeker':'Jyotishi')+': '+h.content).join('\n')||''
+
+    const chartSummary=name+', '+ascendant?.sign+' lagna, '+moonSign+' Moon, '+nakshatra+' Pada '+nakshatraPada+', '+dl+'-'+al+' Dasha (ends '+dasha?.endDate+')'
+    const planetSummary=planets?.map(p=>p.name+'('+p.sign+',H'+p.house+','+p.dignity+')').join(' | ')
+    const yogaSummary=yogas?.map(y=>y.name).join(', ')||'none'
+    const doshaSummary=doshas?.map(d=>d.name).join(', ')||'none'
+
+    const h7lord=houses?.find(h=>h.house===7)?.lord||''
+    const h10lord=houses?.find(h=>h.house===10)?.lord||''
+    const h5lord=houses?.find(h=>h.house===5)?.lord||''
+    const h4lord=houses?.find(h=>h.house===4)?.lord||''
+
+    const keyAspects=aspects?.filter(a=>a.aspectedPlanets.length>0)
+      .map(a=>a.from+' aspects H'+a.toHouse+(a.aspectedPlanets.length?' ('+a.aspectedPlanets.join(',')+')':''))
+      .slice(0,4).join('; ')||'none'
+
+    const keyHouseLords=houseLordAnalysis?.slice(0,5)
+      .map(h=>'H'+h.house+' lord '+h.lord+' in H'+h.lordInHouse+' ('+h.dignity+')')
+      .join('; ')||''
+
+    const demo=demographics||{}
+    const demoContext=Object.keys(demo).length
+      ? 'User profile — Age: '+demo.ageGroup+', Life stage: '+demo.lifeStage+', Relationship: '+demo.relationshipStatus+', Interests: '+(Array.isArray(demo.primaryInterest)?demo.primaryInterest.join(', '):demo.primaryInterest)
+      : ''
+
     const userLoc=req.body.userLocation
-    const locContext=userLoc?.display?'User is currently located in '+userLoc.display+'.':''
-    const promptLines=[
-      'You are Jyotish Acharya, a warm and wise Vedic astrologer.',
-      'Chart: '+chartSummary,
+    const locContext=userLoc?.display?'Currently in '+userLoc.display+'.':''
+
+    const historyText=history?.slice(-4).map(h=>(h.role==='user'?'Seeker':'Jyotishi')+': '+h.content).join('\n')||''
+
+    const prompt=[
+      'You are Jyotish Acharya — a master Vedic astrologer having a warm personal consultation.',
+      '',
+      'BIRTH CHART:',
+      chartSummary,
+      'Planets: '+planetSummary,
+      'Yogas: '+yogaSummary+' | Doshas: '+doshaSummary,
+      'Key aspects: '+keyAspects,
+      'House lords: '+keyHouseLords,
+      'Marriage lord (H7): '+h7lord+' | Career lord (H10): '+h10lord+' | Children lord (H5): '+h5lord+' | Home lord (H4): '+h4lord,
+      demoContext,
       locContext,
-      historyText?'Previous conversation:\n'+historyText:'',
-      'Seeker asks: '+question,
-      'Answer in 3-5 sentences. Be specific to their chart. Use Sanskrit naturally. Be warm and insightful.'
-    ]
+      '',
+      historyText?'CONVERSATION SO FAR:\n'+historyText+'\n':'',
+      'SEEKER ASKS: '+question,
+      '',
+      'Answer guidelines:',
+      '- 4-6 sentences, warm, conversational and deeply specific to their chart',
+      '- Reference their actual planets, houses, aspects or dasha period',
+      '- Use Sanskrit terms naturally (Karma, Dasha, Graha, Lagna etc.)',
+      demoContext?'- Tailor advice to their profile: '+demoContext:'',
+      '- If career question: reference H10 lord '+h10lord+' placement',
+      '- If relationship question: reference H7 lord '+h7lord+' placement',
+      '- Mention a specific remedy when relevant',
+      '- End with a brief uplifting note',
+      '- Write in flowing prose, no bullet points'
+    ].join('\n')
+
     const response=await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
-      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:promptLines.join('\n')}]}],generationConfig:{temperature:0.7,maxOutputTokens:400,topP:0.9}})}
+      {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,maxOutputTokens:600,topP:0.9}})}
     )
     const data=await response.json()
     if(data.error) throw new Error(data.error.message)
     const text=data.candidates?.[0]?.content?.parts?.[0]?.text
+
+    // Generate contextual follow-up hooks based on demographics and answer
+    const demoHint=demoContext?'User is '+demo.ageGroup+', '+demo.lifeStage+', '+demo.relationshipStatus+'.':''
     let followUps=[]
     try {
       const fuRes=await fetch(
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
-        {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Based on this answer, suggest 2 short follow-up questions. Return as JSON array only: ["Q1?","Q2?"]\n\nAnswer: '+text}]}],generationConfig:{temperature:0.7,maxOutputTokens:100}})}
+        {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          contents:[{parts:[{text:'Jyotish answer given: '+text+'\n\n'+demoHint+'\n\nSuggest 2 specific follow-up questions this person would naturally want to ask next about their Vedic astrology reading. Return as JSON array only, no markdown: ["Q1?","Q2?"]'}]}],
+          generationConfig:{temperature:0.7,maxOutputTokens:120}
+        })}
       )
       const fuData=await fuRes.json()
       const fuText=fuData.candidates?.[0]?.content?.parts?.[0]?.text||'[]'
       followUps=JSON.parse(fuText.replace(/```json|```/g,'').trim())
     } catch(e) { followUps=[] }
+
     res.json({answer:text||'Please try again.',followUps})
   } catch(err) {
     res.status(500).json({error:err.message})
   }
 })
-
 const PORT=process.env.PORT||3001
 app.post('/api/sunsign', async (req, res) => {
   try {
