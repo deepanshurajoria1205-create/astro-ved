@@ -374,6 +374,9 @@ export default async function handler(req,res) {
     if(!dob||!tob||!pob) return res.status(400).json({error:'Missing required fields'})
     const [year,month,day]=dob.split('-').map(Number)
     const [hour,minute]=tob.split(':').map(Number)
+    const aspects = calcAspects(planets)
+const houseLordAnalysis = analyzeHouseLords(planets, houses)
+const transitEffects = calcTransitEffects(currentTransits, ascHouse)
     const {lat,lon}=resolveCoords(pob, req.body.lat, req.body.lon)
     const birthJD=toJD(year,month,day,hour,minute)
     const currentJD=toJD(...new Date().toISOString().slice(0,10).split('-').map(Number),12,0)
@@ -426,11 +429,11 @@ export default async function handler(req,res) {
       tithi,yoga,karana,planets,houses,dashaStartIdx,julianDay:birthJD
     }
     const summary=buildSummary(name,kundali,dasha,yogas)
-    res.json({
-      ...kundali,dasha,yogas,doshas,summary,name,gender,pob,
-      currentTransits,ashtakavarga,sadeSati,
-      panchanga:{tithi,yoga,karana,nakshatra:nak.name,vara:['Ravivar','Somvar','Mangalvar','Budhvar','Guruvar','Shukravar','Shanivar'][new Date().getDay()]}
-    })
+    res.json({...kundali, dasha, yogas, doshas, summary, name, gender, pob,
+  currentTransits, ashtakavarga, sadeSati,
+  aspects, houseLordAnalysis, transitEffects
+})
+
   } catch(err){
     console.error(err)
     res.status(500).json({error:'Calculation error',detail:err.message})

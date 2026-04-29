@@ -9,35 +9,126 @@ function getSmartHooks(chartData, userLocation) {
   const lagna = chartData?.ascendant?.sign
   const yogas = chartData?.yogas || []
   const doshas = chartData?.doshas || []
-  const name = chartData?.name?.split(' ')[0] || 'you'
+  const demo = chartData?.demographics || {}
   const loc = userLocation?.city || 'your location'
+  const { ageGroup, lifeStage, relationshipStatus, primaryInterest } = demo
+  const interests = Array.isArray(primaryInterest) ? primaryInterest : [primaryInterest].filter(Boolean)
 
-  // Career hooks based on dasha
-  if (['Shani', 'Mangal', 'Surya'].includes(dl)) hooks.push('What career opportunities does my ' + dl + ' dasha bring?')
-  if (['Guru', 'Shukra'].includes(dl)) hooks.push('How will my ' + dl + ' dasha affect my finances this year?')
+  // Age-specific hooks
+  if (ageGroup === 'under25') {
+    hooks.push('What career path suits my birth chart best?')
+    hooks.push('What does my chart say about my love life right now?')
+    hooks.push('Will I study or work abroad according to my chart?')
+  }
+  if (ageGroup === '25to35') {
+    hooks.push('Is this the right time to switch careers according to my Dasha?')
+    hooks.push('What does my chart say about marriage timing?')
+    hooks.push('When is a good time to start a business?')
+  }
+  if (ageGroup === '35to50') {
+    hooks.push('What does my chart say about my career peak years?')
+    hooks.push('How can I improve my financial situation according to Jyotish?')
+    hooks.push('What does my chart indicate about my children\'s future?')
+  }
+  if (ageGroup === 'above50') {
+    hooks.push('What does my chart say about health in this phase of life?')
+    hooks.push('Is this a good time for pilgrimage or spiritual retreat?')
+    hooks.push('What legacy does my chart indicate I will leave behind?')
+  }
+
+  // Life stage hooks
+  if (lifeStage === 'student') {
+    hooks.push('Which subjects or fields suit my chart best?')
+    hooks.push('Will I get into my dream institution or job?')
+  }
+  if (lifeStage === 'working') {
+    hooks.push('When will I get a promotion or salary hike according to my Dasha?')
+    hooks.push('Should I stay in my current job or move on?')
+  }
+  if (lifeStage === 'married') {
+    hooks.push('How can I improve harmony in my marriage according to Jyotish?')
+    hooks.push('What does my chart say about having children?')
+  }
+  if (lifeStage === 'parent') {
+    hooks.push('What does my chart say about my children\'s education and future?')
+    hooks.push('How can I balance family and career according to my chart?')
+  }
+  if (lifeStage === 'retired') {
+    hooks.push('What spiritual practice is best for my chart at this stage?')
+    hooks.push('What does my chart say about health and longevity?')
+  }
 
   // Relationship hooks
-  if (doshas.find(d => d.name === 'Mangal Dosha')) hooks.push('How does my Mangal Dosha affect my marriage prospects?')
-  hooks.push('What does my 7th house say about my ideal life partner?')
+  if (relationshipStatus === 'single') {
+    hooks.push('When will I find my life partner according to my chart?')
+    hooks.push('What kind of partner is most compatible with my ' + lagna + ' lagna?')
+  }
+  if (relationshipStatus === 'relationship') {
+    hooks.push('Is my partner compatible with my chart?')
+    hooks.push('When is the best time for us to get married?')
+  }
+  if (relationshipStatus === 'married') {
+    hooks.push('How can I strengthen my marriage according to Jyotish?')
+    hooks.push('What does my 7th house say about my partnership?')
+  }
+  if (relationshipStatus === 'divorced') {
+    hooks.push('What does my chart say about finding love again?')
+    hooks.push('How can I heal and move forward according to my chart?')
+  }
 
-  // Location-based hooks
-  hooks.push('Is this a good time for me in ' + loc + ' or should I consider relocating?')
-  hooks.push('Are there any auspicious dates coming up for important decisions in ' + loc + '?')
+  // Interest-specific hooks
+  if (interests.includes('career')) {
+    hooks.push('What career path is best suited for my ' + lagna + ' lagna?')
+    hooks.push('When is my career peak according to my ' + dl + ' Dasha?')
+  }
+  if (interests.includes('love')) {
+    hooks.push('What does my 7th house say about my ideal partner?')
+    hooks.push('What is the best time for marriage in my chart?')
+  }
+  if (interests.includes('health')) {
+    hooks.push('Which areas of health should I focus on based on my chart?')
+    hooks.push('What Ayurvedic practices suit my ' + moonSign + ' Moon?')
+  }
+  if (interests.includes('spirituality')) {
+    hooks.push('What spiritual path is indicated by my chart?')
+    hooks.push('Which mantra is most powerful for my ' + lagna + ' lagna?')
+  }
+  if (interests.includes('property')) {
+    hooks.push('Is this a good time to buy property according to my chart?')
+  }
+  if (interests.includes('travel')) {
+    hooks.push('Does my chart indicate foreign travel or settlement abroad?')
+  }
+  if (interests.includes('education')) {
+    hooks.push('What field of study is best for my chart?')
+  }
+  if (interests.includes('family')) {
+    hooks.push('What does my chart say about family harmony?')
+  }
 
-  // Yoga-based hooks
-  if (yogas.find(y => y.name.includes('Gajakesari'))) hooks.push('Tell me more about my Gajakesari Yoga and how to activate it')
-  if (yogas.find(y => y.name.includes('Raja'))) hooks.push('When will my Raja Yoga give results?')
+  // Dasha hooks
+  hooks.push('What does my ' + dl + ' Mahadasha mean for me specifically?')
 
-  // Moon sign hooks
-  hooks.push('What are the strengths and challenges of ' + moonSign + ' Rashi for me?')
-  hooks.push('What gemstone is best for my ' + lagna + ' lagna?')
+  // Yoga/Dosha hooks
+  if (yogas.find(y => y.name.includes('Gajakesari'))) {
+    hooks.push('How can I best activate my Gajakesari Yoga?')
+  }
+  if (doshas.find(d => d.name === 'Mangal Dosha')) {
+    hooks.push('How serious is my Mangal Dosha and what are the best remedies?')
+  }
 
-  // Spiritual hooks
+  // Location hook
+  hooks.push('Is ' + loc + ' a good place for me according to my chart?')
+
+  // Universal hooks
+  hooks.push('What gemstone should I wear based on my ' + lagna + ' lagna?')
   hooks.push('What is my life purpose according to my birth chart?')
-  hooks.push('Which mantra should I recite daily based on my chart?')
 
-  // Shuffle and return top 6
-  return hooks.sort(() => Math.random() - 0.5).slice(0, 6)
+  // Shuffle and return top 6 — prioritise demographic-specific ones
+  const demographicHooks = hooks.slice(0, hooks.length - 3)
+  const universalHooks = hooks.slice(hooks.length - 3)
+  const shuffled = demographicHooks.sort(() => Math.random() - 0.5).slice(0, 4)
+  return [...shuffled, ...universalHooks.slice(0, 2)]
 }
 
 export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
