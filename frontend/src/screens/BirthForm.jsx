@@ -4,12 +4,12 @@ const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
 export default function BirthForm({ onCalculated, theme }) {
   const t = theme || {}
-  const [step, setStep] = useState(1) // 1 = demographics, 2 = birth details
+  const [step, setStep] = useState(1)
   const [form, setForm] = useState({
     name: '', dob: '', tob: '', pob: '', gender: 'Male', lat: null, lon: null
   })
   const [demographics, setDemographics] = useState({
-    ageGroup: '', lifeStage: '', relationshipStatus: '', primaryInterest: ''
+    ageGroup: '', lifeStage: '', relationshipStatus: '', primaryInterest: []
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -27,7 +27,7 @@ export default function BirthForm({ onCalculated, theme }) {
     setPlaceLoading(true)
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&addressdetails=1`,
+        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query) + '&format=json&limit=6&addressdetails=1',
         { headers: { 'Accept-Language': 'en' } }
       )
       const data = await res.json()
@@ -70,7 +70,7 @@ export default function BirthForm({ onCalculated, theme }) {
     if (!form.name.trim()) { setErrors({name:'Name is required'}); return false }
     if (!demographics.ageGroup) { setErrors({ageGroup:'Please select your age group'}); return false }
     if (!demographics.lifeStage) { setErrors({lifeStage:'Please select your life stage'}); return false }
-    if (!demographics.primaryInterest) { setErrors({primaryInterest:'Please select your primary interest'}); return false }
+    if (!demographics.primaryInterest.length) { setErrors({primaryInterest:'Please select at least one area'}); return false }
     setErrors({})
     return true
   }
@@ -89,14 +89,14 @@ export default function BirthForm({ onCalculated, theme }) {
     setLoading(true)
     try {
       const payload = { ...form, demographics }
-      const res = await fetch(`${API}/calculate`, {
+      const res = await fetch(API + '/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-      const hRes = await fetch(`${API}/horoscope`, {
+      const hRes = await fetch(API + '/horoscope', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chartData: {...data, name: form.name}, period: 'weekly' })
@@ -109,24 +109,48 @@ export default function BirthForm({ onCalculated, theme }) {
     setLoading(false)
   }
 
-  const SelectCard = ({ options, value, onChange, error }) => (
-    <div>
-      <div className="flex flex-wrap gap-2">
-        {options.map(o => (
-          <button key={o.value} onClick={() => onChange(o.value)}
-            className={'px-3 py-2 rounded-xl text-xs border transition-all ' +
-              (value === o.value
-                ? 'bg-amber-700/40 border-amber-500 text-amber-300'
-                : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
-            {o.emoji} {o.label}
-          </button>
-        ))}
-      </div>
-      {error && <p className="text-red-500 text-xs mt-1">⚠ {error}</p>}
-    </div>
-  )
+  const AGE_OPTIONS = [
+    {value:'under25', label:'Under 25', emoji:'🌱'},
+    {value:'25to35', label:'25-35', emoji:'⚡'},
+    {value:'35to50', label:'35-50', emoji:'🌟'},
+    {value:'above50', label:'50+', emoji:'🧘'},
+  ]
 
-  // STEP 1 — Demographics
+  const LIFE_OPTIONS = [
+    {value:'student', label:'Student', emoji:'📚'},
+    {value:'working', label:'Working', emoji:'💼'},
+    {value:'married', label:'Married', emoji:'💑'},
+    {value:'parent', label:'Parent', emoji:'👨‍👩‍👧'},
+    {value:'retired', label:'Retired', emoji:'🌅'},
+  ]
+
+  const RELATION_OPTIONS = [
+    {value:'single', label:'Single', emoji:'🌸'},
+    {value:'relationship', label:'In a Relationship', emoji:'💕'},
+    {value:'married', label:'Married', emoji:'💍'},
+    {value:'divorced', label:'Separated', emoji:'🌊'},
+  ]
+
+  const INTEREST_OPTIONS = [
+    {value:'career', label:'Career & Money', emoji:'💼'},
+    {value:'love', label:'Love & Marriage', emoji:'💕'},
+    {value:'health', label:'Health', emoji:'🌿'},
+    {value:'spirituality', label:'Spirituality', emoji:'🪔'},
+    {value:'family', label:'Family', emoji:'🏠'},
+    {value:'education', label:'Education', emoji:'📚'},
+    {value:'travel', label:'Travel & Foreign', emoji:'✈️'},
+    {value:'property', label:'Property', emoji:'🏡'},
+  ]
+
+  const toggleInterest = (val) => {
+    const current = demographics.primaryInterest
+    const updated = current.includes(val)
+      ? current.filter(v => v !== val)
+      : [...current, val]
+    setDemo('primaryInterest', updated)
+  }
+
+  // STEP 1 - Demographics
   if (step === 1) return (
     <div className="min-h-screen pb-10">
       <div className="px-6 pt-10 pb-5 border-b border-amber-900/30">
@@ -136,6 +160,7 @@ export default function BirthForm({ onCalculated, theme }) {
       </div>
 
       <div className="px-5 pt-6 flex flex-col gap-6">
+
         {/* Name */}
         <div>
           <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">👤 Your Name</label>
@@ -153,81 +178,74 @@ export default function BirthForm({ onCalculated, theme }) {
         {/* Gender */}
         <div>
           <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">⚧ Gender</label>
-          <SelectCard
-            options={[
-              {value:'Male', label:'Male', emoji:'♂'},
-              {value:'Female', label:'Female', emoji:'♀'},
-              {value:'Other', label:'Other', emoji:'⚧'},
-            ]}
-            value={form.gender}
-            onChange={v => set('gender', v)}
-          />
+          <div className="flex flex-wrap gap-2">
+            {[{value:'Male',label:'Male',emoji:'♂'},{value:'Female',label:'Female',emoji:'♀'},{value:'Other',label:'Other',emoji:'⚧'}].map(o => (
+              <button key={o.value} onClick={() => set('gender', o.value)}
+                className={'px-4 py-2 rounded-xl text-xs border transition-all ' +
+                  (form.gender === o.value ? 'bg-amber-700/40 border-amber-500 text-amber-300' : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
+                {o.emoji} {o.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Age Group */}
         <div>
           <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">🎂 Age Group</label>
-          <SelectCard
-            options={[
-              {value:'under25', label:'Under 25', emoji:'🌱'},
-              {value:'25to35', label:'25–35', emoji:'⚡'},
-              {value:'35to50', label:'35–50', emoji:'🌟'},
-              {value:'above50', label:'50+', emoji:'🧘'},
-            ]}
-            value={demographics.ageGroup}
-            onChange={v => setDemo('ageGroup', v)}
-            error={errors.ageGroup}
-          />
+          <div className="flex flex-wrap gap-2">
+            {AGE_OPTIONS.map(o => (
+              <button key={o.value} onClick={() => setDemo('ageGroup', o.value)}
+                className={'px-3 py-2 rounded-xl text-xs border transition-all ' +
+                  (demographics.ageGroup === o.value ? 'bg-amber-700/40 border-amber-500 text-amber-300' : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
+                {o.emoji} {o.label}
+              </button>
+            ))}
+          </div>
+          {errors.ageGroup && <p className="text-red-500 text-xs mt-1">⚠ {errors.ageGroup}</p>}
         </div>
 
         {/* Life Stage */}
         <div>
           <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">🏠 Life Stage</label>
-          <SelectCard
-            options={[
-              {value:'student', label:'Student', emoji:'📚'},
-              {value:'working', label:'Working', emoji:'💼'},
-              {value:'married', label:'Married', emoji:'💑'},
-              {value:'parent', label:'Parent', emoji:'👨‍👩‍👧'},
-              {value:'retired', label:'Retired', emoji:'🌅'},
-            ]}
-            value={demographics.lifeStage}
-            onChange={v => setDemo('lifeStage', v)}
-            error={errors.lifeStage}
-          />
+          <div className="flex flex-wrap gap-2">
+            {LIFE_OPTIONS.map(o => (
+              <button key={o.value} onClick={() => setDemo('lifeStage', o.value)}
+                className={'px-3 py-2 rounded-xl text-xs border transition-all ' +
+                  (demographics.lifeStage === o.value ? 'bg-amber-700/40 border-amber-500 text-amber-300' : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
+                {o.emoji} {o.label}
+              </button>
+            ))}
+          </div>
+          {errors.lifeStage && <p className="text-red-500 text-xs mt-1">⚠ {errors.lifeStage}</p>}
         </div>
 
         {/* Relationship Status */}
         <div>
           <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">💞 Relationship Status</label>
-          <SelectCard
-            options={[
-              {value:'single', label:'Single', emoji:'🌸'},
-              {value:'relationship', label:'In a Relationship', emoji:'💕'},
-              {value:'married', label:'Married', emoji:'💍'},
-              {value:'divorced', label:'Separated', emoji:'🌊'},
-            ]}
-            value={demographics.relationshipStatus}
-            onChange={v => setDemo('relationshipStatus', v)}
-          />
+          <div className="flex flex-wrap gap-2">
+            {RELATION_OPTIONS.map(o => (
+              <button key={o.value} onClick={() => setDemo('relationshipStatus', o.value)}
+                className={'px-3 py-2 rounded-xl text-xs border transition-all ' +
+                  (demographics.relationshipStatus === o.value ? 'bg-amber-700/40 border-amber-500 text-amber-300' : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
+                {o.emoji} {o.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Primary Interest */}
+        {/* Primary Interest - Multi Select */}
         <div>
-          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">✨ I Want Guidance On</label>
-          <SelectCard
-            options={[
-              {value:'career', label:'Career & Money', emoji:'💼'},
-              {value:'love', label:'Love & Marriage', emoji:'💕'},
-              {value:'health', label:'Health', emoji:'🌿'},
-              {value:'spirituality', label:'Spirituality', emoji:'🪔'},
-              {value:'family', label:'Family', emoji:'🏠'},
-              {value:'all', label:'Everything', emoji:'🌟'},
-            ]}
-            value={demographics.primaryInterest}
-            onChange={v => setDemo('primaryInterest', v)}
-            error={errors.primaryInterest}
-          />
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">✨ I Want Guidance On (select all that apply)</label>
+          <div className="flex flex-wrap gap-2">
+            {INTEREST_OPTIONS.map(o => (
+              <button key={o.value} onClick={() => toggleInterest(o.value)}
+                className={'px-3 py-2 rounded-xl text-xs border transition-all ' +
+                  (demographics.primaryInterest.includes(o.value) ? 'bg-amber-700/40 border-amber-500 text-amber-300' : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
+                {o.emoji} {o.label}
+              </button>
+            ))}
+          </div>
+          {errors.primaryInterest && <p className="text-red-500 text-xs mt-1">⚠ {errors.primaryInterest}</p>}
         </div>
 
         <button onClick={() => { if(validateStep1()) setStep(2) }}
@@ -238,7 +256,7 @@ export default function BirthForm({ onCalculated, theme }) {
     </div>
   )
 
-  // STEP 2 — Birth Details
+  // STEP 2 - Birth Details
   return (
     <div className="min-h-screen pb-10">
       <div className="px-6 pt-6 pb-5 border-b border-amber-900/30">
@@ -252,8 +270,8 @@ export default function BirthForm({ onCalculated, theme }) {
 
       <div className="px-5 pt-6 flex flex-col gap-5">
         {[
-          {key:'dob', label:'Date of Birth (जन्म तिथि)', type:'date', icon:'📅'},
-          {key:'tob', label:'Time of Birth (जन्म समय)', type:'time', icon:'⏰'},
+          {key:'dob', label:'Date of Birth', type:'date', icon:'📅'},
+          {key:'tob', label:'Time of Birth', type:'time', icon:'⏰'},
         ].map(f => (
           <div key={f.key}>
             <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">{f.icon} {f.label}</label>
@@ -261,16 +279,17 @@ export default function BirthForm({ onCalculated, theme }) {
               type={f.type}
               value={form[f.key]}
               onChange={e => set(f.key, e.target.value)}
-              className={'w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500 ' + (errors[f.key] ? 'border-red-700' : 'border-amber-900/40')}
+              className={'w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500 ' +
+                (errors[f.key] ? 'border-red-700' : 'border-amber-900/40')}
               style={{colorScheme:'dark'}}
             />
             {errors[f.key] && <p className="text-red-500 text-xs mt-1">⚠ {errors[f.key]}</p>}
           </div>
         ))}
 
-        {/* Place search */}
+        {/* Place Search */}
         <div ref={suggestionsRef}>
-          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">📍 Place of Birth (जन्म स्थान)</label>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">📍 Place of Birth</label>
           <div className="relative">
             <input
               type="text"
@@ -278,7 +297,8 @@ export default function BirthForm({ onCalculated, theme }) {
               onChange={e => handlePlaceInput(e.target.value)}
               onFocus={() => placeSuggestions.length > 0 && setShowSuggestions(true)}
               placeholder="Search city, town or village..."
-              className={'w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500 ' + (errors.pob ? 'border-red-700' : 'border-amber-900/40')}
+              className={'w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500 ' +
+                (errors.pob ? 'border-red-700' : 'border-amber-900/40')}
               style={{colorScheme:'dark'}}
             />
             {placeLoading && <div className="absolute right-3 top-3 text-amber-600 text-xs animate-spin">☸</div>}
@@ -296,11 +316,11 @@ export default function BirthForm({ onCalculated, theme }) {
             )}
           </div>
           {errors.pob && <p className="text-red-500 text-xs mt-1">⚠ {errors.pob}</p>}
-          {form.lat && <p className="text-green-700 text-xs mt-1">✓ Location found: {form.lat.toFixed(3)}°N, {form.lon.toFixed(3)}°E</p>}
+          {form.lat && <p className="text-green-700 text-xs mt-1">✓ Location: {form.lat.toFixed(3)}°N, {form.lon.toFixed(3)}°E</p>}
         </div>
 
         <div className="bg-amber-950/20 border border-amber-900/20 rounded-lg p-3 text-xs text-amber-800 leading-relaxed">
-          🔒 Your birth data is used solely for astrological calculations and is never stored without your permission.
+          🔒 Your birth data is used solely for astrological calculations and never stored without permission.
         </div>
 
         <button onClick={handleSubmit} disabled={loading}

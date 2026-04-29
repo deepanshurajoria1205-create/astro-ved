@@ -109,7 +109,7 @@ export default function App() {
   return (
     <div className={`min-h-screen flex justify-center ${isDay ? 'day-mode' : 'bg-[#050310]'} transition-colors duration-1000`}>
       <div className="w-full max-w-md relative">
-        {screen === 'splash' && <SplashScreen onDone={() => setScreen('form')} theme={theme} isDay={isDay} />}
+        {screen === 'splash' && <SplashScreen onDone={() => setScreen('form')} onSunSign={() => setScreen('sunsign')} theme={theme} isDay={isDay} />}
         {screen === 'form' && (
           <BirthForm
             theme={theme}
