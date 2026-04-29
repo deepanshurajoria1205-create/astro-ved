@@ -4,7 +4,13 @@ const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
 export default function BirthForm({ onCalculated, theme }) {
   const t = theme || {}
-  const [form, setForm] = useState({ name:'', dob:'', tob:'', pob:'', gender:'Male', lat:null, lon:null })
+  const [step, setStep] = useState(1) // 1 = demographics, 2 = birth details
+  const [form, setForm] = useState({
+    name: '', dob: '', tob: '', pob: '', gender: 'Male', lat: null, lon: null
+  })
+  const [demographics, setDemographics] = useState({
+    ageGroup: '', lifeStage: '', relationshipStatus: '', primaryInterest: ''
+  })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [placeSuggestions, setPlaceSuggestions] = useState([])
@@ -13,9 +19,9 @@ export default function BirthForm({ onCalculated, theme }) {
   const placeTimer = useRef(null)
   const suggestionsRef = useRef(null)
 
-  const set = (k, v) => setForm(p => ({...p, [k]:v}))
+  const set = (k, v) => setForm(p => ({...p, [k]: v}))
+  const setDemo = (k, v) => setDemographics(p => ({...p, [k]: v}))
 
-  // Search places using OpenStreetMap Nominatim (free, no key needed)
   const searchPlaces = async (query) => {
     if (query.length < 3) { setPlaceSuggestions([]); return }
     setPlaceLoading(true)
@@ -32,9 +38,7 @@ export default function BirthForm({ onCalculated, theme }) {
         lon: parseFloat(p.lon)
       })))
       setShowSuggestions(true)
-    } catch(e) {
-      setPlaceSuggestions([])
-    }
+    } catch(e) { setPlaceSuggestions([]) }
     setPlaceLoading(false)
   }
 
@@ -52,7 +56,6 @@ export default function BirthForm({ onCalculated, theme }) {
     setShowSuggestions(false)
   }
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
@@ -63,9 +66,17 @@ export default function BirthForm({ onCalculated, theme }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const validate = () => {
+  const validateStep1 = () => {
+    if (!form.name.trim()) { setErrors({name:'Name is required'}); return false }
+    if (!demographics.ageGroup) { setErrors({ageGroup:'Please select your age group'}); return false }
+    if (!demographics.lifeStage) { setErrors({lifeStage:'Please select your life stage'}); return false }
+    if (!demographics.primaryInterest) { setErrors({primaryInterest:'Please select your primary interest'}); return false }
+    setErrors({})
+    return true
+  }
+
+  const validateStep2 = () => {
     const e = {}
-    if (!form.name.trim()) e.name = 'Name is required'
     if (!form.dob) e.dob = 'Date of birth is required'
     if (!form.tob) e.tob = 'Time of birth is required'
     if (!form.pob.trim()) e.pob = 'Place of birth is required'
@@ -74,71 +85,192 @@ export default function BirthForm({ onCalculated, theme }) {
   }
 
   const handleSubmit = async () => {
-    if (!validate()) return
+    if (!validateStep2()) return
     setLoading(true)
     try {
-      const payload = { ...form }
-      // If lat/lon not set from search, backend will use city lookup
+      const payload = { ...form, demographics }
       const res = await fetch(`${API}/calculate`, {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-
       const hRes = await fetch(`${API}/horoscope`, {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ chartData: {...data, name:form.name}, period:'weekly' })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chartData: {...data, name: form.name}, period: 'weekly' })
       })
       const hData = await hRes.json()
-      onCalculated({...data, weeklyHoroscope: hData.horoscope}, form)
+      onCalculated({...data, weeklyHoroscope: hData.horoscope, demographics}, form)
     } catch(err) {
       alert('Error: ' + err.message)
     }
     setLoading(false)
   }
 
-  const fields = [
-    {key:'name', label:'Full Name', type:'text', placeholder:'Enter your full name', icon:'👤'},
-    {key:'dob',  label:'Date of Birth (जन्म तिथि)', type:'date', placeholder:'', icon:'📅'},
-    {key:'tob',  label:'Time of Birth (जन्म समय)', type:'time', placeholder:'', icon:'⏰'},
-  ]
+  const SelectCard = ({ options, value, onChange, error }) => (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {options.map(o => (
+          <button key={o.value} onClick={() => onChange(o.value)}
+            className={'px-3 py-2 rounded-xl text-xs border transition-all ' +
+              (value === o.value
+                ? 'bg-amber-700/40 border-amber-500 text-amber-300'
+                : 'bg-amber-950/20 border-amber-900/30 text-amber-700')}>
+            {o.emoji} {o.label}
+          </button>
+        ))}
+      </div>
+      {error && <p className="text-red-500 text-xs mt-1">⚠ {error}</p>}
+    </div>
+  )
 
-  return (
+  // STEP 1 — Demographics
+  if (step === 1) return (
     <div className="min-h-screen pb-10">
       <div className="px-6 pt-10 pb-5 border-b border-amber-900/30">
-        <p className={'text-xs tracking-[0.3em] mb-1 ' + (t.textMuted||'text-amber-800')}>ENTER YOUR</p>
-<h2 className={'text-3xl font-light ' + (t.textAccent||'text-amber-400')}>Birth Details</h2>
-<p className={'text-xs mt-1 ' + (t.textMuted||'text-amber-800')}>जन्म विवरण • For accurate Kundali calculation</p>
+        <p className="text-xs tracking-[0.3em] text-amber-800 mb-1">WELCOME TO</p>
+        <h2 className="text-3xl text-amber-400 font-light">Jyotish</h2>
+        <p className="text-xs text-amber-700 mt-1">Let us personalise your cosmic journey</p>
+      </div>
+
+      <div className="px-5 pt-6 flex flex-col gap-6">
+        {/* Name */}
+        <div>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">👤 Your Name</label>
+          <input
+            type="text"
+            value={form.name}
+            onChange={e => set('name', e.target.value)}
+            placeholder="Enter your full name"
+            className="w-full bg-amber-950/20 border border-amber-900/40 rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500"
+            style={{colorScheme:'dark'}}
+          />
+          {errors.name && <p className="text-red-500 text-xs mt-1">⚠ {errors.name}</p>}
+        </div>
+
+        {/* Gender */}
+        <div>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">⚧ Gender</label>
+          <SelectCard
+            options={[
+              {value:'Male', label:'Male', emoji:'♂'},
+              {value:'Female', label:'Female', emoji:'♀'},
+              {value:'Other', label:'Other', emoji:'⚧'},
+            ]}
+            value={form.gender}
+            onChange={v => set('gender', v)}
+          />
+        </div>
+
+        {/* Age Group */}
+        <div>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">🎂 Age Group</label>
+          <SelectCard
+            options={[
+              {value:'under25', label:'Under 25', emoji:'🌱'},
+              {value:'25to35', label:'25–35', emoji:'⚡'},
+              {value:'35to50', label:'35–50', emoji:'🌟'},
+              {value:'above50', label:'50+', emoji:'🧘'},
+            ]}
+            value={demographics.ageGroup}
+            onChange={v => setDemo('ageGroup', v)}
+            error={errors.ageGroup}
+          />
+        </div>
+
+        {/* Life Stage */}
+        <div>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">🏠 Life Stage</label>
+          <SelectCard
+            options={[
+              {value:'student', label:'Student', emoji:'📚'},
+              {value:'working', label:'Working', emoji:'💼'},
+              {value:'married', label:'Married', emoji:'💑'},
+              {value:'parent', label:'Parent', emoji:'👨‍👩‍👧'},
+              {value:'retired', label:'Retired', emoji:'🌅'},
+            ]}
+            value={demographics.lifeStage}
+            onChange={v => setDemo('lifeStage', v)}
+            error={errors.lifeStage}
+          />
+        </div>
+
+        {/* Relationship Status */}
+        <div>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">💞 Relationship Status</label>
+          <SelectCard
+            options={[
+              {value:'single', label:'Single', emoji:'🌸'},
+              {value:'relationship', label:'In a Relationship', emoji:'💕'},
+              {value:'married', label:'Married', emoji:'💍'},
+              {value:'divorced', label:'Separated', emoji:'🌊'},
+            ]}
+            value={demographics.relationshipStatus}
+            onChange={v => setDemo('relationshipStatus', v)}
+          />
+        </div>
+
+        {/* Primary Interest */}
+        <div>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">✨ I Want Guidance On</label>
+          <SelectCard
+            options={[
+              {value:'career', label:'Career & Money', emoji:'💼'},
+              {value:'love', label:'Love & Marriage', emoji:'💕'},
+              {value:'health', label:'Health', emoji:'🌿'},
+              {value:'spirituality', label:'Spirituality', emoji:'🪔'},
+              {value:'family', label:'Family', emoji:'🏠'},
+              {value:'all', label:'Everything', emoji:'🌟'},
+            ]}
+            value={demographics.primaryInterest}
+            onChange={v => setDemo('primaryInterest', v)}
+            error={errors.primaryInterest}
+          />
+        </div>
+
+        <button onClick={() => { if(validateStep1()) setStep(2) }}
+          className="w-full bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900 font-bold py-4 rounded-xl text-base tracking-wide active:scale-95 transition-transform">
+          Continue ✦
+        </button>
+      </div>
+    </div>
+  )
+
+  // STEP 2 — Birth Details
+  return (
+    <div className="min-h-screen pb-10">
+      <div className="px-6 pt-6 pb-5 border-b border-amber-900/30">
+        <button onClick={() => setStep(1)} className="text-amber-700 text-sm mb-3 flex items-center gap-1">
+          ‹ Back
+        </button>
+        <p className="text-xs tracking-[0.3em] text-amber-800 mb-1">ENTER YOUR</p>
+        <h2 className="text-3xl text-amber-400 font-light">Birth Details</h2>
+        <p className="text-xs text-amber-700 mt-1">Namaste {form.name}! For your accurate Kundali</p>
       </div>
 
       <div className="px-5 pt-6 flex flex-col gap-5">
-        {fields.map(f => (
+        {[
+          {key:'dob', label:'Date of Birth (जन्म तिथि)', type:'date', icon:'📅'},
+          {key:'tob', label:'Time of Birth (जन्म समय)', type:'time', icon:'⏰'},
+        ].map(f => (
           <div key={f.key}>
-            <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">
-              {f.icon} {f.label}
-            </label>
+            <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">{f.icon} {f.label}</label>
             <input
               type={f.type}
               value={form[f.key]}
               onChange={e => set(f.key, e.target.value)}
-              placeholder={f.placeholder}
-              className={`w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm
-                focus:outline-none focus:border-amber-500 transition-colors
-                ${errors[f.key] ? 'border-red-700' : 'border-amber-900/40'}`}
+              className={'w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500 ' + (errors[f.key] ? 'border-red-700' : 'border-amber-900/40')}
               style={{colorScheme:'dark'}}
             />
             {errors[f.key] && <p className="text-red-500 text-xs mt-1">⚠ {errors[f.key]}</p>}
           </div>
         ))}
 
-        {/* Place of Birth with search */}
+        {/* Place search */}
         <div ref={suggestionsRef}>
-          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">
-            📍 Place of Birth (जन्म स्थान)
-          </label>
+          <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">📍 Place of Birth (जन्म स्थान)</label>
           <div className="relative">
             <input
               type="text"
@@ -146,27 +278,16 @@ export default function BirthForm({ onCalculated, theme }) {
               onChange={e => handlePlaceInput(e.target.value)}
               onFocus={() => placeSuggestions.length > 0 && setShowSuggestions(true)}
               placeholder="Search city, town or village..."
-              className={`w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm
-                focus:outline-none focus:border-amber-500 transition-colors
-                ${errors.pob ? 'border-red-700' : 'border-amber-900/40'}`}
+              className={'w-full bg-amber-950/20 border rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none focus:border-amber-500 ' + (errors.pob ? 'border-red-700' : 'border-amber-900/40')}
               style={{colorScheme:'dark'}}
             />
-            {placeLoading && (
-              <div className="absolute right-3 top-3 text-amber-600 text-xs animate-spin">☸</div>
-            )}
-            {form.lat && (
-              <div className="absolute right-3 top-3 text-green-500 text-sm">✓</div>
-            )}
-
-            {/* Suggestions dropdown */}
+            {placeLoading && <div className="absolute right-3 top-3 text-amber-600 text-xs animate-spin">☸</div>}
+            {form.lat && <div className="absolute right-3 top-3 text-green-500 text-sm">✓</div>}
             {showSuggestions && placeSuggestions.length > 0 && (
               <div className="absolute z-50 w-full mt-1 bg-[#0d0a1a] border border-amber-900/40 rounded-lg overflow-hidden shadow-xl">
                 {placeSuggestions.map((place, i) => (
-                  <button
-                    key={i}
-                    onClick={() => selectPlace(place)}
-                    className="w-full text-left px-4 py-3 hover:bg-amber-950/40 border-b border-amber-900/20 last:border-0 transition-colors"
-                  >
+                  <button key={i} onClick={() => selectPlace(place)}
+                    className="w-full text-left px-4 py-3 hover:bg-amber-950/40 border-b border-amber-900/20 last:border-0">
                     <p className="text-amber-200 text-sm">{place.short}</p>
                     <p className="text-amber-800 text-xs mt-0.5 truncate">{place.display}</p>
                   </button>
@@ -175,32 +296,7 @@ export default function BirthForm({ onCalculated, theme }) {
             )}
           </div>
           {errors.pob && <p className="text-red-500 text-xs mt-1">⚠ {errors.pob}</p>}
-          {form.lat && (
-            <p className="text-green-700 text-xs mt-1">
-              ✓ Location found: {form.lat.toFixed(4)}°N, {form.lon.toFixed(4)}°E
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">⚧ Gender</label>
-            <select value={form.gender} onChange={e => set('gender', e.target.value)}
-              className="w-full bg-amber-950/20 border border-amber-900/40 rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none"
-              style={{colorScheme:'dark'}}>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-amber-700 tracking-[0.15em] block mb-2">🌐 Language</label>
-            <select className="w-full bg-amber-950/20 border border-amber-900/40 rounded-lg px-4 py-3 text-amber-100 text-sm focus:outline-none"
-              style={{colorScheme:'dark'}}>
-              <option>English</option>
-              <option>Hindi</option>
-            </select>
-          </div>
+          {form.lat && <p className="text-green-700 text-xs mt-1">✓ Location found: {form.lat.toFixed(3)}°N, {form.lon.toFixed(3)}°E</p>}
         </div>
 
         <div className="bg-amber-950/20 border border-amber-900/20 rounded-lg p-3 text-xs text-amber-800 leading-relaxed">
@@ -208,7 +304,7 @@ export default function BirthForm({ onCalculated, theme }) {
         </div>
 
         <button onClick={handleSubmit} disabled={loading}
-          className={'w-full font-bold py-4 rounded-xl text-base tracking-wide mt-2 active:scale-95 transition-transform disabled:opacity-60 ' + (t.button||'bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900')}>
+          className="w-full bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900 font-bold py-4 rounded-xl text-base tracking-wide active:scale-95 transition-transform disabled:opacity-60">
           {loading ? '✦ Calculating Kundali...' : '✦ Calculate My Kundali ✦'}
         </button>
       </div>

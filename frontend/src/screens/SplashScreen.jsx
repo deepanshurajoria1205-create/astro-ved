@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-export default function SplashScreen({ onDone }) {
+export default function SplashScreen({ onDone, onSunSign, theme, isDay }) {
   useEffect(() => {
     const t = setTimeout(onDone, 3000)
     return () => clearTimeout(t)
@@ -21,11 +21,18 @@ export default function SplashScreen({ onDone }) {
           <span className="text-xs">Let the stars reveal your destiny</span>
         </p>
         <div className="flex gap-2 mt-2">
-          {[0,1,2].map(i => (
-            <div key={i} className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"
-              style={{animationDelay:`${i*0.3}s`}} />
-          ))}
-        </div>
+  {[0,1,2].map(i => (
+    <div key={i} className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"
+      style={{animationDelay:`${i*0.3}s`}} />
+  ))}
+</div>
+
+{onSunSign && (
+  <button onClick={onSunSign}
+    className="mt-4 px-6 py-2 border border-amber-700/40 rounded-full text-xs text-amber-600">
+    ✦ View Sun Sign Forecasts
+  </button>
+)}
       </div>
     </div>
   )

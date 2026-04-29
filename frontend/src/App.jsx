@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import SplashScreen from './screens/SplashScreen'
 import BirthForm from './screens/BirthForm'
 import ChartScreen from './screens/ChartScreen'
+import SunSignScreen from './screens/SunSignScreen'
 import HoroscopeScreen from './screens/HoroscopeScreen'
 import ChatScreen from './screens/ChatScreen'
 
@@ -140,6 +141,13 @@ export default function App() {
             onBack={() => setScreen('chart')}
           />
         )}
+        {screen === 'sunsign' && (
+  <SunSignScreen
+    onBack={() => setScreen('form')}
+    theme={theme}
+    userLocation={userLocation}
+  />
+)}
       </div>
     </div>
   )

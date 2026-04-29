@@ -467,4 +467,95 @@ app.post('/api/chat', async (req, res) => {
 })
 
 const PORT=process.env.PORT||3001
+app.post('/api/sunsign', async (req, res) => {
+  try {
+    const {sign, period, location} = req.body
+    if (!sign || !period) return res.status(400).json({error:'Missing sign or period'})
+
+    // Get current planetary transits
+    swisseph.swe_set_sid_mode(swisseph.SE_SIDM_LAHIRI, 0, 0)
+    const now = new Date()
+    const currentJD = toJD(now.getFullYear(), now.getMonth()+1, now.getDate(), 12, 0)
+
+    const [cSun,cMoon,cMars,cMerc,cJup,cVen,cSat,cRahu] = await Promise.all([
+      getPlanetLon(currentJD, swisseph.SE_SUN),
+      getPlanetLon(currentJD, swisseph.SE_MOON),
+      getPlanetLon(currentJD, swisseph.SE_MARS),
+      getPlanetLon(currentJD, swisseph.SE_MERCURY),
+      getPlanetLon(currentJD, swisseph.SE_JUPITER),
+      getPlanetLon(currentJD, swisseph.SE_VENUS),
+      getPlanetLon(currentJD, swisseph.SE_SATURN),
+      getPlanetLon(currentJD, swisseph.SE_TRUE_NODE),
+    ])
+
+    const transits = [
+      {name:'Surya (Sun)', sign:signFrom(cSun).name, degree:signFrom(cSun).degree.toFixed(1)},
+      {name:'Chandra (Moon)', sign:signFrom(cMoon).name, degree:signFrom(cMoon).degree.toFixed(1)},
+      {name:'Mangal (Mars)', sign:signFrom(cMars).name, degree:signFrom(cMars).degree.toFixed(1)},
+      {name:'Budha (Mercury)', sign:signFrom(cMerc).name, degree:signFrom(cMerc).degree.toFixed(1)},
+      {name:'Guru (Jupiter)', sign:signFrom(cJup).name, degree:signFrom(cJup).degree.toFixed(1)},
+      {name:'Shukra (Venus)', sign:signFrom(cVen).name, degree:signFrom(cVen).degree.toFixed(1)},
+      {name:'Shani (Saturn)', sign:signFrom(cSat).name, degree:signFrom(cSat).degree.toFixed(1)},
+      {name:'Rahu', sign:signFrom(cRahu).name, degree:signFrom(cRahu).degree.toFixed(1)},
+      {name:'Ketu', sign:signFrom((cRahu+180)%360).name, degree:signFrom((cRahu+180)%360).degree.toFixed(1)},
+    ]
+
+    const SIGN_NUMBERS = {Mesha:1,Vrishabha:2,Mithuna:3,Karka:4,Simha:5,Kanya:6,Tula:7,Vrischika:8,Dhanu:9,Makara:10,Kumbha:11,Meena:12}
+    const signNum = SIGN_NUMBERS[sign] || 1
+
+    const periodLabel = period === 'monthly'
+      ? now.toLocaleString('en-IN', {month:'long', year:'numeric'})
+      : '2026'
+
+    const prompt = [
+      'You are a world-class Vedic astrologer writing in the warm, detailed, insightful style of Susan Miller of AstrologyZone.',
+      'Write a ' + period + ' forecast for ' + sign + ' (' + periodLabel + ').',
+      '',
+      'CURRENT PLANETARY POSITIONS (Vedic sidereal):',
+      transits.map(t => t.name + ' in ' + t.sign + ' at ' + t.degree + '°').join('\n'),
+      '',
+      'The reader\'s Sun sign is ' + sign + ' (sign number ' + signNum + ' in the zodiac).',
+      location ? 'Reader is located in ' + location + '.' : '',
+      '',
+      'Write a detailed, warm, ' + period + ' forecast covering ALL of these areas:',
+      '## Overview — The Cosmic Story This ' + (period==='monthly'?'Month':'Year'),
+      '## Love & Relationships',
+      '## Career & Finance',
+      '## Health & Wellbeing',
+      '## Spirituality & Inner Growth',
+      period === 'monthly' ? '## Key Dates This Month' : '## Quarterly Breakdown',
+      '## Your Cosmic Advice',
+      '',
+      'Style guidelines:',
+      '- Write like Susan Miller — warm, encouraging, specific, conversational',
+      '- Reference actual planet positions from the transit data above',
+      '- Mention specific dates or time periods within the ' + period,
+      '- Each section should be 3-5 sentences minimum',
+      '- Use Vedic planet names (Guru, Shani, Shukra etc.) alongside English names',
+      '- Be optimistic but honest about challenges',
+      '- Total length: ' + (period === 'monthly' ? '600-800' : '1000-1200') + ' words',
+      '- End with an inspiring closing message',
+    ].join('\n')
+
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + process.env.GEMINI_API_KEY,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          contents: [{parts: [{text: prompt}]}],
+          generationConfig: {temperature: 0.8, maxOutputTokens: 2000, topP: 0.9}
+        })
+      }
+    )
+    const data = await response.json()
+    if (data.error) throw new Error(data.error.message)
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!text) throw new Error('No response from Gemini')
+    res.json({forecast: text, sign, period})
+  } catch(err) {
+    console.error('Sun sign error:', err)
+    res.status(500).json({error: err.message})
+  }
+})
 app.listen(PORT,()=>console.log('Jyotish API running on port '+PORT))
