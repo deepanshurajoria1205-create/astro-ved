@@ -436,7 +436,10 @@ app.post('/api/horoscope', (req, res) => {
   res.json({horoscope:lines.join('\n'),period})
 })
 
-app.post('/api/ai-horoscope', async (req, res) => {
+app.post('/api/ai-horoscope', checkPremium, async (req, res) => {
+  if (!req.isPremium && (req.body.period === 'monthly' || req.body.period === 'annual')) {
+    return res.status(403).json({ error: 'premium_required', feature: req.body.period + '_horoscope' })
+  }
   try {
     const {chartData,period}=req.body
     if(!chartData||!period) return res.status(400).json({error:'Missing data'})
@@ -709,8 +712,8 @@ app.post('/api/create-order', async (req, res) => {
   try {
     const { plan } = req.body
     const PLANS = {
-      monthly: { amount: 29900, currency: 'INR' },
-      annual:  { amount: 249900, currency: 'INR' }
+      monthly: { amount: 4900, currency: 'INR' },
+      annual:  { amount: 44900, currency: 'INR' }
     }
     if (!PLANS[plan]) return res.status(400).json({ error: 'Invalid plan' })
     const order = await razorpay.orders.create({
