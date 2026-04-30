@@ -5,3 +5,14 @@
   background: linear-gradient(135deg, #e0f2fe 0%, #fef9c3 50%, #fed7aa 100%) !important;
   color: #1e293b;
 }
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.font-serif {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+h1, h2, h3, .heading {
+  font-family: 'Cormorant Garamond', serif;
+}
