@@ -1,18 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-.day-mode {
-  background: linear-gradient(135deg, #e0f2fe 0%, #fef9c3 50%, #fed7aa 100%) !important;
-  color: #1e293b;
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
+
 body {
   font-family: 'Inter', sans-serif;
+  background-color: #FAFAF8;
+  color: #1e293b;
 }
 
-.font-serif {
+h1, h2, h3, .font-serif {
   font-family: 'Cormorant Garamond', serif;
 }
 
-h1, h2, h3, .heading {
+/* Prose overrides for horoscope readings */
+.prose h2 {
   font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #92400e;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.prose p {
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.prose em {
+  color: #b45309;
+  font-style: italic;
+}
+
+.prose strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+
+/* Remove input autofill yellow */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px #FAFAF8 inset !important;
 }
