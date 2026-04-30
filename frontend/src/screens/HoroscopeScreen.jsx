@@ -15,7 +15,7 @@ export default function HoroscopeScreen({ chartData, initialType, onBack, theme 
 const [gateFeature, setGateFeature] = useState('')
 
   const fetchHoroscope = async (period) => {
-  if (!isPremiumUser() && (period === 'weekly' || period === 'annual')) {
+  if (!isPremiumUser() && (period === 'monthly' || period === 'annual')) {
     setGateFeature(period + '_horoscope')
     setShowGate(true)
     return

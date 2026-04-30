@@ -620,7 +620,10 @@ app.post('/api/chat', checkPremium, async (req, res) => {
   }
 })
 
-app.post('/api/sunsign', async (req, res) => {
+app.post('/api/sunsign', checkPremium, async (req, res) => {
+  if (!req.isPremium && (req.body.period === 'monthly' || req.body.period === 'annual')) {
+    return res.status(403).json({ error: 'premium_required', feature: 'sun_' + req.body.period })
+  }
   try {
     const {sign, period, location, demographics} = req.body
     if (!sign || !period) return res.status(400).json({error:'Missing sign or period'})

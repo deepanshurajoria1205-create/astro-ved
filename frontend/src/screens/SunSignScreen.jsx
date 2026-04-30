@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import { isPremiumUser, getPremiumHeaders } from '../utils/premium'
+import PremiumGate from '../components/PremiumGate'
 
 const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
@@ -17,24 +20,35 @@ const SUN_SIGNS = [
   {name:'Meena', english:'Pisces', symbol:'♓', dates:'Feb 19 – Mar 20', element:'Water', color:'#a78bfa'},
 ]
 
-import ReactMarkdown from 'react-markdown'
-
 export default function SunSignScreen({ onBack, theme, userLocation }) {
   const [selected, setSelected] = useState(null)
-  const [period, setPeriod] = useState('monthly')
+  const [period, setPeriod] = useState('weekly')
   const [forecast, setForecast] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showGate, setShowGate] = useState(false)
+  const [gateFeature, setGateFeature] = useState('')
 
   const fetchForecast = async (sign, p) => {
+    if (!isPremiumUser() && (p === 'monthly' || p === 'annual')) {
+      setGateFeature('sun_' + p)
+      setShowGate(true)
+      return
+    }
     setLoading(true)
     setForecast('')
     try {
       const res = await fetch(`${API}/sunsign`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getPremiumHeaders() },
         body: JSON.stringify({ sign: sign.name, period: p, location: userLocation?.display })
       })
       const data = await res.json()
+      if (data.error === 'premium_required') {
+        setGateFeature('sun_' + p)
+        setShowGate(true)
+        setLoading(false)
+        return
+      }
       setForecast(data.forecast || 'Unable to generate forecast.')
     } catch(e) {
       setForecast('Connection error. Please try again.')
@@ -75,7 +89,7 @@ export default function SunSignScreen({ onBack, theme, userLocation }) {
 
       <div className="px-5 mt-6 p-4 bg-amber-950/20 border border-amber-900/20 rounded-xl">
         <p className="text-xs text-amber-700 leading-relaxed">
-          ✨ Sun sign forecasts are based on current planetary transits and provide general cosmic guidance. For a personalised reading based on your exact birth chart, calculate your Kundali.
+          ✨ Weekly forecasts are free. Upgrade to Premium for Monthly and Annual forecasts.
         </p>
       </div>
     </div>
@@ -97,11 +111,12 @@ export default function SunSignScreen({ onBack, theme, userLocation }) {
       </div>
 
       <div className="flex gap-2 px-4 py-3 border-b border-amber-900/10">
-        {['monthly','annual'].map(p => (
+        {['weekly','monthly','annual'].map(p => (
           <button key={p} onClick={() => changePeriod(p)}
             className={'flex-1 py-2 rounded-lg text-xs capitalize transition-colors border ' +
               (period===p ? 'bg-amber-900/40 text-amber-400 border-amber-700/40' : 'text-amber-800 border-amber-900/20')}>
-            {p === 'monthly' ? '🌙 Monthly' : '🪐 Annual 2026'}
+            {p === 'weekly' ? '🌙 Weekly' : p === 'monthly' ? '☀️ Monthly' : '🪐 Annual'}
+            {(p === 'monthly' || p === 'annual') && !isPremiumUser() ? ' 🔒' : ''}
           </button>
         ))}
       </div>
@@ -122,6 +137,17 @@ export default function SunSignScreen({ onBack, theme, userLocation }) {
           </div>
         )}
       </div>
+
+      {showGate && (
+        <PremiumGate
+          feature={gateFeature}
+          onClose={() => setShowGate(false)}
+          onSuccess={(token) => {
+            setShowGate(false)
+            fetchForecast(selected, period)
+          }}
+        />
+      )}
     </div>
   )
 }

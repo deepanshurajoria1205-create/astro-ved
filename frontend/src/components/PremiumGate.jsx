@@ -6,6 +6,8 @@ const FEATURES = {
   weekly_horoscope: { title: 'Weekly AI Horoscope', icon: '📅', desc: 'Get personalized weekly guidance based on your exact birth chart' },
   annual_horoscope: { title: 'Annual AI Horoscope', icon: '🪐', desc: 'Full year 2026 forecast with quarterly breakdown' },
   chat: { title: 'Unlimited Chat', icon: '💬', desc: 'Upgrade for unlimited questions to your Jyotish Acharya' },
+  sun_monthly: { title: 'Monthly Sun Sign Forecast', icon: '☀️', desc: 'Detailed monthly forecast for your Sun sign' },
+sun_annual: { title: 'Annual Sun Sign Forecast', icon: '🪐', desc: 'Full year 2026 forecast for your Sun sign' },
 }
 
 export default function PremiumGate({ feature, onClose, onSuccess }) {
