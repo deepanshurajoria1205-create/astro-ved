@@ -1,3 +1,5 @@
+import { isPremiumUser, getPremiumHeaders } from '../utils/premium'
+import PremiumGate from '../components/PremiumGate'
 import { useState, useRef, useEffect } from 'react'
 
 const API = 'https://jyotish-backend-stw4.onrender.com/api'
@@ -143,6 +145,8 @@ export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showAllHooks, setShowAllHooks] = useState(false)
+  const [showGate, setShowGate] = useState(false)
+const [messageCount, setMessageCount] = useState(0)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -150,34 +154,44 @@ export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
   }, [messages])
 
   const sendMessage = async (question) => {
-    const q = question || input.trim()
-    if (!q) return
-    setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: q }])
-    setLoading(true)
-
-    try {
-      const res = await fetch(`${API}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: q,
-          chartData,
-          userLocation,
-          history: messages.slice(-6)
-        })
-      })
-      const data = await res.json()
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.answer || 'Please try again.',
-        followUps: data.followUps || []
-      }])
-    } catch(e) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again.' }])
-    }
-    setLoading(false)
+  const q = question || input.trim()
+  if (!q) return
+  if (!isPremiumUser() && messageCount >= 3) {
+    setShowGate(true)
+    return
   }
+  setInput('')
+  setMessages(prev => [...prev, { role: 'user', content: q }])
+  setMessageCount(prev => prev + 1)
+  setLoading(true)
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getPremiumHeaders() },
+      body: JSON.stringify({
+        question: q,
+        chartData,
+        userLocation,
+        history: messages.slice(-6),
+        messageCount
+      })
+    })
+    const data = await res.json()
+    if (data.error === 'premium_required') {
+      setShowGate(true)
+      setLoading(false)
+      return
+    }
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: data.answer || 'Please try again.',
+      followUps: data.followUps || []
+    }])
+  } catch(e) {
+    setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again.' }])
+  }
+  setLoading(false)
+}
 
   const visibleHooks = showAllHooks ? hooks : hooks.slice(0, 3)
 
@@ -281,6 +295,13 @@ export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
           </button>
         </div>
       </div>
+      {showGate && (
+  <PremiumGate
+    feature="chat"
+    onClose={() => setShowGate(false)}
+    onSuccess={() => setShowGate(false)}
+  />
+)}
     </div>
   )
 }

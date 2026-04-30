@@ -1,3 +1,5 @@
+import { isPremiumUser, getPremiumToken, getPremiumHeaders } from '../utils/premium'
+import PremiumGate from '../components/PremiumGate'
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 
@@ -9,24 +11,37 @@ export default function HoroscopeScreen({ chartData, initialType, onBack, theme 
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const [useAI, setUseAI] = useState(true)
+  const [showGate, setShowGate] = useState(false)
+const [gateFeature, setGateFeature] = useState('')
 
   const fetchHoroscope = async (period) => {
-    setLoading(true)
-    setText('')
-    try {
-      const endpoint = useAI ? `${API}/ai-horoscope` : `${API}/horoscope`
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chartData, period })
-      })
-      const data = await res.json()
-      setText(data.horoscope || 'Unable to generate reading.')
-    } catch(e) {
-      setText('Connection error. Please try again.')
-    }
-    setLoading(false)
+  if (!isPremiumUser() && (period === 'weekly' || period === 'annual')) {
+    setGateFeature(period + '_horoscope')
+    setShowGate(true)
+    return
   }
+  setLoading(true)
+  setText('')
+  try {
+    const endpoint = useAI ? `${API}/ai-horoscope` : `${API}/horoscope`
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getPremiumHeaders() },
+      body: JSON.stringify({ chartData, period })
+    })
+    const data = await res.json()
+    if (data.error === 'premium_required') {
+      setGateFeature(period + '_horoscope')
+      setShowGate(true)
+      setLoading(false)
+      return
+    }
+    setText(data.horoscope || 'Unable to generate reading.')
+  } catch(e) {
+    setText('Connection error. Please try again.')
+  }
+  setLoading(false)
+}
 
   useEffect(() => { fetchHoroscope(type) }, [type, useAI])
 
@@ -82,6 +97,16 @@ export default function HoroscopeScreen({ chartData, initialType, onBack, theme 
           </div>
         )}
       </div>
+      {showGate && (
+  <PremiumGate
+    feature={gateFeature}
+    onClose={() => setShowGate(false)}
+    onSuccess={(token) => {
+      setShowGate(false)
+      fetchHoroscope(type)
+    }}
+  />
+)}
     </div>
   )
 }
