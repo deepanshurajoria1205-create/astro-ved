@@ -98,8 +98,8 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
 
         <div className="flex gap-3 mb-4">
           {[
-            { id: 'monthly', label: 'Monthly', price: '₹299', sub: 'per month' },
-            { id: 'annual', label: 'Annual', price: '₹2499', sub: 'Save 30%', badge: 'BEST VALUE' }
+            { id: 'monthly', label: 'Monthly', price: '₹49', sub: 'per month' },
+{ id: 'annual', label: 'Annual', price: '₹449', sub: 'per year · Save 25%', badge: 'BEST VALUE' }
           ].map(plan => (
             <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
               className={'flex-1 border rounded-xl p-3 text-left transition-all ' +
@@ -123,7 +123,7 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
 
         <button onClick={handlePayment} disabled={loading || !email}
           className="w-full bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900 font-bold py-4 rounded-xl text-sm tracking-wide disabled:opacity-50">
-          {loading ? '✦ Processing...' : 'Upgrade to Premium — ' + (selectedPlan === 'monthly' ? '₹299/month' : '₹2499/year')}
+          {loading ? '✦ Processing...' : 'Upgrade to Premium — ' + (selectedPlan === 'monthly' ? '₹49/month' : '₹449/year')}
         </button>
 
         <p className="text-xs text-amber-900 text-center mt-2">
