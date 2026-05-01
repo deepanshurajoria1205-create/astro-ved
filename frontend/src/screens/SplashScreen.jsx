@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export default function SplashScreen({ onDone, onSunSign }) {
+export default function SplashScreen({ onDone, onSunSign, onLegal }) {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -11,7 +11,7 @@ export default function SplashScreen({ onDone, onSunSign }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF8] relative overflow-hidden">
 
-      {/* Decorative circles */}
+      {/* Decorative blobs */}
       <div className="absolute top-[-120px] right-[-120px] w-[350px] h-[350px] rounded-full bg-amber-100 opacity-60 blur-3xl pointer-events-none"/>
       <div className="absolute bottom-[-80px] left-[-80px] w-[250px] h-[250px] rounded-full bg-orange-100 opacity-60 blur-3xl pointer-events-none"/>
 
@@ -55,7 +55,7 @@ export default function SplashScreen({ onDone, onSunSign }) {
         </div>
 
         {/* CTAs */}
-        <div className={`pb-10 flex flex-col gap-3 transition-all duration-700 ${ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+        <div className={`pb-6 flex flex-col gap-3 transition-all duration-700 ${ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
           <button onClick={onDone}
             className="w-full py-4 rounded-2xl bg-slate-800 text-white font-semibold text-sm tracking-wide shadow-lg active:scale-95 transition-transform">
             ✦ Calculate My Kundali
@@ -67,6 +67,22 @@ export default function SplashScreen({ onDone, onSunSign }) {
           <p className="text-center text-xs text-slate-400 mt-1">
             Swiss Ephemeris · Lahiri Ayanamsha · AI-Powered
           </p>
+
+          {/* Legal links */}
+          <div className="flex justify-center gap-4 pb-2 flex-wrap">
+            {[
+              {label:'Terms', section:'terms'},
+              {label:'Privacy', section:'privacy'},
+              {label:'Disclaimer', section:'disclaimer'},
+              {label:'Refunds', section:'refund'},
+            ].map(item => (
+              <button key={item.section}
+                onClick={() => onLegal && onLegal(item.section)}
+                className="text-xs text-slate-400 underline underline-offset-2">
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

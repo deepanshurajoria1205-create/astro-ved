@@ -5,14 +5,17 @@ import ChartScreen from './screens/ChartScreen'
 import HoroscopeScreen from './screens/HoroscopeScreen'
 import ChatScreen from './screens/ChatScreen'
 import SunSignScreen from './screens/SunSignScreen'
+import LegalScreen from './screens/LegalScreen'
 
 export default function App() {
   const [screen, setScreen] = useState('splash')
+  const [prevScreen, setPrevScreen] = useState('splash')
   const [chartData, setChartData] = useState(null)
   const [formData, setFormData] = useState(null)
   const [horoscopeType, setHoroscopeType] = useState('weekly')
   const [userLocation, setUserLocation] = useState(null)
   const [hasChart, setHasChart] = useState(false)
+  const [legalSection, setLegalSection] = useState('disclaimer')
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -36,6 +39,7 @@ export default function App() {
     }
   }, [])
 
+  const goTo = (s) => { setPrevScreen(screen); setScreen(s) }
   const showBottomNav = ['chart','horoscope','chat','sunsign'].includes(screen)
 
   const NAV_ITEMS = [
@@ -46,32 +50,25 @@ export default function App() {
   ]
 
   const handleNavPress = (item) => {
-    if (item.requiresChart && !hasChart) {
-      setScreen('form')
-    } else {
-      setScreen(item.id)
-    }
+    if (item.requiresChart && !hasChart) setScreen('form')
+    else goTo(item.id)
   }
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex justify-center">
       <div className="w-full max-w-md relative flex flex-col min-h-screen">
-
         <div className={`flex-1 ${showBottomNav ? 'pb-20' : ''}`}>
+
           {screen === 'splash' && (
             <SplashScreen
               onDone={() => setScreen('form')}
               onSunSign={() => setScreen('sunsign')}
+              onLegal={(section) => { setLegalSection(section); setPrevScreen('splash'); setScreen('legal') }}
             />
           )}
           {screen === 'form' && (
             <BirthForm
-              onCalculated={(data, form) => {
-                setChartData(data)
-                setFormData(form)
-                setHasChart(true)
-                setScreen('chart')
-              }}
+              onCalculated={(data, form) => { setChartData(data); setFormData(form); setHasChart(true); setScreen('chart') }}
               onBack={() => setScreen('splash')}
             />
           )}
@@ -79,8 +76,8 @@ export default function App() {
             <ChartScreen
               chartData={chartData}
               onBack={() => setScreen('form')}
-              onHoroscope={(type) => { setHoroscopeType(type); setScreen('horoscope') }}
-              onChat={() => setScreen('chat')}
+              onHoroscope={(type) => { setHoroscopeType(type); goTo('horoscope') }}
+              onChat={() => goTo('chat')}
             />
           )}
           {screen === 'horoscope' && (
@@ -103,6 +100,12 @@ export default function App() {
               userLocation={userLocation}
             />
           )}
+          {screen === 'legal' && (
+            <LegalScreen
+              onBack={() => setScreen(prevScreen)}
+              initialSection={legalSection}
+            />
+          )}
         </div>
 
         {/* Bottom Navigation */}
@@ -111,20 +114,10 @@ export default function App() {
             <div className="flex justify-around">
               {NAV_ITEMS.map(item => (
                 <button key={item.id} onClick={() => handleNavPress(item)}
-                  className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
-                    screen === item.id
-                      ? 'text-slate-900'
-                      : 'text-slate-400'
-                  }`}>
-                  <span className={`text-xl transition-all ${screen === item.id ? 'scale-110' : ''}`}>
-                    {item.icon}
-                  </span>
-                  <span className={`text-xs font-medium ${screen === item.id ? 'text-slate-900' : 'text-slate-400'}`}>
-                    {item.label}
-                  </span>
-                  {screen === item.id && (
-                    <div className="w-1 h-1 rounded-full bg-amber-500"/>
-                  )}
+                  className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all">
+                  <span className={`text-xl ${screen === item.id ? 'scale-110' : ''}`}>{item.icon}</span>
+                  <span className={`text-xs font-medium ${screen === item.id ? 'text-slate-900' : 'text-slate-400'}`}>{item.label}</span>
+                  {screen === item.id && <div className="w-1 h-1 rounded-full bg-amber-500"/>}
                 </button>
               ))}
             </div>

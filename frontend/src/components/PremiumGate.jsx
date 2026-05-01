@@ -14,10 +14,12 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState('annual')
   const [email, setEmail] = useState('')
+  const [termsAgreed, setTermsAgreed] = useState(false)
   const feat = FEATURES[feature] || { title: 'Premium Feature', icon: '✨', desc: 'Upgrade to access this feature' }
 
   const handlePayment = async () => {
     if (!email) { alert('Please enter your email'); return }
+    if (!termsAgreed) { alert('Please agree to the Terms & Conditions to continue'); return }
     setLoading(true)
     try {
       if (!window.Razorpay) {
@@ -78,20 +80,22 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl">
 
-        {/* Top section */}
+        {/* Top dark section */}
         <div className="bg-slate-900 px-6 pt-6 pb-8 relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors text-lg font-bold">
-  ✕
-</button>
+          <button onClick={onClose}
+            className="absolute top-4 right-4 text-white w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors text-lg font-bold">
+            ✕
+          </button>
           <p className="text-amber-400 text-xs font-semibold tracking-widest mb-2">PREMIUM FEATURE</p>
           <h2 className="font-serif text-3xl text-white font-light mb-1">{feat.icon} {feat.title}</h2>
           <p className="text-slate-400 text-sm">{feat.desc}</p>
         </div>
 
-        <div className="px-6 py-6">
+        <div className="px-6 py-5">
+
           {/* Benefits */}
+          <p className="text-xs font-semibold text-slate-400 tracking-widest mb-3">WHAT YOU GET</p>
           <div className="mb-5">
-            <p className="text-xs font-semibold text-slate-400 tracking-widest mb-3">WHAT YOU GET</p>
             {[
               '📅 Monthly + Annual AI horoscopes',
               '💬 Unlimited Jyotish Acharya chat',
@@ -117,11 +121,19 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
                     : 'border-slate-200 bg-white'
                 }`}>
                 {plan.badge && (
-                  <span className="text-xs bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full">{plan.badge}</span>
+                  <span className="text-xs bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full">
+                    {plan.badge}
+                  </span>
                 )}
-                <p className={`text-sm font-semibold mt-1 ${selectedPlan === plan.id ? 'text-slate-900' : 'text-slate-500'}`}>{plan.label}</p>
-                <p className={`text-2xl font-bold ${selectedPlan === plan.id ? 'text-slate-900' : 'text-slate-400'}`}>{plan.price}</p>
-                <p className={`text-xs ${selectedPlan === plan.id ? 'text-slate-500' : 'text-slate-400'}`}>{plan.sub}</p>
+                <p className={`text-sm font-semibold mt-1 ${selectedPlan === plan.id ? 'text-slate-900' : 'text-slate-500'}`}>
+                  {plan.label}
+                </p>
+                <p className={`text-2xl font-bold ${selectedPlan === plan.id ? 'text-slate-900' : 'text-slate-400'}`}>
+                  {plan.price}
+                </p>
+                <p className={`text-xs ${selectedPlan === plan.id ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {plan.sub}
+                </p>
               </button>
             ))}
           </div>
@@ -135,18 +147,42 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm mb-4 focus:outline-none focus:border-slate-400"
           />
 
+          {/* Terms checkbox */}
+          <div className="flex items-start gap-3 mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <input
+              type="checkbox"
+              id="terms-agree"
+              checked={termsAgreed}
+              onChange={e => setTermsAgreed(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-slate-900 shrink-0"
+            />
+            <label htmlFor="terms-agree" className="text-xs text-slate-500 leading-relaxed cursor-pointer">
+              I agree to the{' '}
+              <span className="text-slate-700 underline">Terms & Conditions</span>,{' '}
+              <span className="text-slate-700 underline">Privacy Policy</span>, and{' '}
+              <span className="text-slate-700 underline">Refund Policy</span>.
+              I understand astrological readings are for entertainment and self-reflection purposes only.
+            </label>
+          </div>
+
           {/* Pay button */}
-          <button onClick={handlePayment} disabled={loading || !email}
+          <button
+            onClick={handlePayment}
+            disabled={loading || !email || !termsAgreed}
             className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl text-sm tracking-wide disabled:opacity-40 active:scale-95 transition-transform">
             {loading ? 'Processing...' : `Upgrade — ${selectedPlan === 'monthly' ? '₹49/month' : '₹599/year'}`}
           </button>
 
           <p className="text-xs text-slate-400 text-center mt-3">
-  Secure payment via Razorpay · UPI, Cards, Netbanking
-</p>
-<button onClick={onClose} className="w-full text-center text-sm text-slate-400 mt-3 py-2">
-  No thanks, continue for free
-</button>
+            Secure payment via Razorpay · UPI, Cards, Netbanking
+          </p>
+
+          {/* No thanks */}
+          <button
+            onClick={onClose}
+            className="w-full text-center text-sm text-slate-400 mt-2 py-2 hover:text-slate-600 transition-colors">
+            No thanks, continue for free
+          </button>
         </div>
       </div>
     </div>
