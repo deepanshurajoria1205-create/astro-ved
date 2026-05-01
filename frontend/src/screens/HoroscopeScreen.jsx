@@ -116,7 +116,7 @@ export default function HoroscopeScreen({ chartData, initialType, onBack }) {
       {showGate && (
         <PremiumGate
           feature={gateFeature}
-          onClose={() => setShowGate(false)}
+          onClose={() => { setShowGate(false); setType('weekly'); }}
           onSuccess={() => { setShowGate(false); fetchHoroscope(type) }}
         />
       )}

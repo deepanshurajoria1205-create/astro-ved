@@ -141,7 +141,7 @@ export default function SunSignScreen({ onBack, theme, userLocation }) {
       {showGate && (
         <PremiumGate
           feature={gateFeature}
-          onClose={() => setShowGate(false)}
+          onClose={() => { setShowGate(false); setPeriod('weekly'); fetchForecast(selected, 'weekly') }}
           onSuccess={(token) => {
             setShowGate(false)
             fetchForecast(selected, period)
