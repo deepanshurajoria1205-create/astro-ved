@@ -75,16 +75,16 @@ export default function SunSignScreen({ onBack, theme, userLocation }) {
         <p className="text-xs text-amber-700 mt-1">Select your sign for a detailed forecast</p>
       </div>
 
-      <div className="px-4 pt-5 grid grid-cols-3 gap-3">
+      <div className="px-4 pt-5 grid grid-cols-3 gap-3 pb-6">
         {SUN_SIGNS.map(sign => (
-          <button key={sign.name} onClick={() => selectSign(sign)}
-            className="bg-amber-950/20 border border-amber-900/30 rounded-xl p-3 flex flex-col items-center gap-1 active:scale-95 transition-transform">
-            <span className="text-2xl" style={{color: sign.color}}>{sign.symbol}</span>
-            <span className="text-xs text-amber-400 font-medium">{sign.english}</span>
-            <span className="text-xs text-amber-800">{sign.name}</span>
-            <span className="text-xs text-amber-900">{sign.element}</span>
-          </button>
-        ))}
+  <button key={sign.name} onClick={() => selectSign(sign)}
+    className="bg-white border border-slate-200 rounded-2xl p-3 flex flex-col items-center gap-1 active:scale-95 transition-transform shadow-sm hover:shadow-md hover:border-slate-300">
+    <span className="text-2xl mb-1" style={{color: sign.color}}>{sign.symbol}</span>
+    <span className="text-sm font-semibold text-slate-900">{sign.english}</span>
+    <span className="text-xs text-slate-500">{sign.name}</span>
+    <span className="text-xs text-slate-400">{sign.element}</span>
+  </button>
+))}
       </div>
 
       <div className="px-5 mt-6 p-4 bg-amber-950/20 border border-amber-900/20 rounded-xl">
