@@ -3,11 +3,11 @@ import { useState } from 'react'
 const API = 'https://jyotish-backend-stw4.onrender.com/api'
 
 const FEATURES = {
-  weekly_horoscope: { title: 'Weekly AI Horoscope', icon: '📅', desc: 'Get personalized weekly guidance based on your exact birth chart' },
-  annual_horoscope: { title: 'Annual AI Horoscope', icon: '🪐', desc: 'Full year 2026 forecast with quarterly breakdown' },
-  chat: { title: 'Unlimited Chat', icon: '💬', desc: 'Upgrade for unlimited questions to your Jyotish Acharya' },
-  sun_monthly: { title: 'Monthly Sun Sign Forecast', icon: '☀️', desc: 'Detailed monthly forecast for your Sun sign' },
-sun_annual: { title: 'Annual Sun Sign Forecast', icon: '🪐', desc: 'Full year 2026 forecast for your Sun sign' },
+  monthly_horoscope: { title: 'Monthly Horoscope', icon: '📅', desc: 'Detailed monthly reading based on your birth chart' },
+  annual_horoscope: { title: 'Annual Horoscope', icon: '🪐', desc: 'Full year 2026 forecast with quarterly breakdown' },
+  chat: { title: 'Unlimited AI Chat', icon: '💬', desc: 'Unlimited questions to your personal Jyotish Acharya' },
+  sun_monthly: { title: 'Monthly Sun Sign', icon: '☀️', desc: 'Detailed monthly Sun sign forecast' },
+  sun_annual: { title: 'Annual Sun Sign', icon: '🪐', desc: 'Full year Sun sign forecast for 2026' },
 }
 
 export default function PremiumGate({ feature, onClose, onSuccess }) {
@@ -41,11 +41,11 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'Jyotish — Vedic Astrology',
-        description: selectedPlan === 'monthly' ? 'Monthly Premium Plan' : 'Annual Premium Plan',
+        name: 'Jyotish',
+        description: selectedPlan === 'monthly' ? 'Monthly Premium — ₹49' : 'Annual Premium — ₹599',
         order_id: orderData.orderId,
         prefill: { email },
-        theme: { color: '#d97706' },
+        theme: { color: '#0f172a' },
         handler: async (response) => {
           const verifyRes = await fetch(API + '/verify-payment', {
             method: 'POST',
@@ -75,62 +75,76 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-center p-4">
-      <div className="w-full max-w-md bg-[#0d0a1a] border border-amber-900/40 rounded-2xl p-6 pb-8">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <p className="text-xs text-amber-700 tracking-widest mb-1">✦ PREMIUM FEATURE</p>
-            <h3 className="text-xl text-amber-400">{feat.icon} {feat.title}</h3>
-            <p className="text-xs text-amber-700 mt-1">{feat.desc}</p>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl">
+
+        {/* Top section */}
+        <div className="bg-slate-900 px-6 pt-6 pb-8 relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800">
+            ✕
+          </button>
+          <p className="text-amber-400 text-xs font-semibold tracking-widest mb-2">PREMIUM FEATURE</p>
+          <h2 className="font-serif text-3xl text-white font-light mb-1">{feat.icon} {feat.title}</h2>
+          <p className="text-slate-400 text-sm">{feat.desc}</p>
+        </div>
+
+        <div className="px-6 py-6">
+          {/* Benefits */}
+          <div className="mb-5">
+            <p className="text-xs font-semibold text-slate-400 tracking-widest mb-3">WHAT YOU GET</p>
+            {[
+              '📅 Monthly + Annual AI horoscopes',
+              '💬 Unlimited Jyotish Acharya chat',
+              '☀️ Monthly + Annual Sun sign forecasts',
+              '⚡ Richer, more detailed readings',
+            ].map((b, i) => (
+              <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-0">
+                <span className="text-slate-900 text-sm">{b}</span>
+              </div>
+            ))}
           </div>
-          <button onClick={onClose} className="text-amber-800 text-xl px-2">✕</button>
+
+          {/* Plan selector */}
+          <div className="flex gap-3 mb-4">
+            {[
+              { id: 'monthly', label: 'Monthly', price: '₹49', sub: 'per month' },
+              { id: 'annual', label: 'Annual', price: '₹599', sub: 'per year', badge: 'SAVE 17%' }
+            ].map(plan => (
+              <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
+                className={`flex-1 border-2 rounded-2xl p-3 text-left transition-all ${
+                  selectedPlan === plan.id
+                    ? 'border-slate-900 bg-slate-50'
+                    : 'border-slate-200 bg-white'
+                }`}>
+                {plan.badge && (
+                  <span className="text-xs bg-amber-400 text-slate-900 font-bold px-2 py-0.5 rounded-full">{plan.badge}</span>
+                )}
+                <p className={`text-sm font-semibold mt-1 ${selectedPlan === plan.id ? 'text-slate-900' : 'text-slate-500'}`}>{plan.label}</p>
+                <p className={`text-2xl font-bold ${selectedPlan === plan.id ? 'text-slate-900' : 'text-slate-400'}`}>{plan.price}</p>
+                <p className={`text-xs ${selectedPlan === plan.id ? 'text-slate-500' : 'text-slate-400'}`}>{plan.sub}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Email */}
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="Email for payment receipt"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 text-sm mb-4 focus:outline-none focus:border-slate-400"
+          />
+
+          {/* Pay button */}
+          <button onClick={handlePayment} disabled={loading || !email}
+            className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl text-sm tracking-wide disabled:opacity-40 active:scale-95 transition-transform">
+            {loading ? 'Processing...' : `Upgrade — ${selectedPlan === 'monthly' ? '₹49/month' : '₹599/year'}`}
+          </button>
+
+          <p className="text-xs text-slate-400 text-center mt-3">
+            Secure payment via Razorpay · UPI, Cards, Netbanking
+          </p>
         </div>
-
-        <div className="bg-amber-950/30 rounded-xl p-3 mb-4">
-          <p className="text-xs text-amber-600 font-medium mb-2">✦ PREMIUM INCLUDES</p>
-          {[
-            '📅 Weekly + Monthly + Annual AI horoscopes',
-            '💬 Unlimited Jyotish Acharya chat',
-            '🪐 Full year Sun sign forecasts',
-            '⚡ Richer, more detailed readings',
-          ].map((b, i) => (
-            <p key={i} className="text-xs text-amber-300 py-1.5 border-b border-amber-900/20 last:border-0">{b}</p>
-          ))}
-        </div>
-
-        <div className="flex gap-3 mb-4">
-          {[
-            { id: 'monthly', label: 'Monthly', price: '₹49', sub: 'per month' },
-{ id: 'annual', label: 'Annual', price: '₹449', sub: 'per year · Save 25%', badge: 'BEST VALUE' }
-          ].map(plan => (
-            <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
-              className={'flex-1 border rounded-xl p-3 text-left transition-all ' +
-                (selectedPlan === plan.id ? 'border-amber-500 bg-amber-900/30' : 'border-amber-900/30')}>
-              {plan.badge && <span className="text-xs bg-amber-600 text-black px-2 py-0.5 rounded-full">{plan.badge}</span>}
-              <p className={'text-sm mt-1 ' + (selectedPlan === plan.id ? 'text-amber-300' : 'text-amber-700')}>{plan.label}</p>
-              <p className={'text-xl font-bold ' + (selectedPlan === plan.id ? 'text-amber-400' : 'text-amber-800')}>{plan.price}</p>
-              <p className="text-xs text-amber-800">{plan.sub}</p>
-            </button>
-          ))}
-        </div>
-
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="Email for payment receipt"
-          className="w-full bg-amber-950/20 border border-amber-900/40 rounded-lg px-4 py-2.5 text-amber-100 text-sm mb-3 focus:outline-none focus:border-amber-500"
-          style={{colorScheme:'dark'}}
-        />
-
-        <button onClick={handlePayment} disabled={loading || !email}
-          className="w-full bg-gradient-to-r from-amber-700 to-amber-500 text-slate-900 font-bold py-4 rounded-xl text-sm tracking-wide disabled:opacity-50">
-          {loading ? '✦ Processing...' : 'Upgrade to Premium — ' + (selectedPlan === 'monthly' ? '₹49/month' : '₹449/year')}
-        </button>
-
-        <p className="text-xs text-amber-900 text-center mt-2">
-          Secure payment via Razorpay · UPI, Cards, Netbanking
-        </p>
       </div>
     </div>
   )
