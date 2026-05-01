@@ -61,7 +61,7 @@ All content is for entertainment and self-reflection purposes. See our Disclaime
 
 **Premium Plans:**
 - Monthly Plan: ₹49 per month
-- Annual Plan: ₹599 per year
+- Annual Plan: ₹449 per year
 
 Premium subscribers get access to monthly and annual horoscopes, unlimited AI chat, and Sun sign monthly/annual forecasts.
 
@@ -208,11 +208,11 @@ At Jyotish, we want you to be completely satisfied with your Premium subscriptio
 - You may cancel at any time to prevent future charges.
 - Access continues until the end of the current billing period.
 
-### Annual Subscriptions (₹599/year)
+### Annual Subscriptions (₹449/year)
 - **Full refund** available within 48 hours of purchase if you have not used any premium features.
 - **Pro-rata refund** for remaining months available within 7 days of purchase.
 - After 7 days, no refunds are available for annual subscriptions.
-- Refund = (₹599 / 12) × remaining full months unused
+- Refund = (₹449 / 12) × remaining full months unused
 
 ### How to Request a Refund
 1. Email support@myjyotish-ai.in with subject "Refund Request"

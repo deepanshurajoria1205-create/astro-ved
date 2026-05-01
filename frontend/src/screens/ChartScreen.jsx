@@ -319,7 +319,7 @@ export default function ChartScreen({ chartData, onBack, onHoroscope, onChat }) 
           className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-left shadow-sm active:scale-95 transition-transform">
           <span className="text-2xl mb-2 block">🪐</span>
           <p className="font-semibold text-slate-900 text-sm">Annual Reading</p>
-          <p className="text-amber-600 text-xs mt-0.5">Premium · ₹599/yr</p>
+          <p className="text-amber-600 text-xs mt-0.5">Premium · ₹449/yr</p>
         </button>
       </div>
 

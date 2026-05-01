@@ -44,7 +44,7 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'Jyotish',
-        description: selectedPlan === 'monthly' ? 'Monthly Premium — ₹49' : 'Annual Premium — ₹599',
+        description: selectedPlan === 'monthly' ? 'Monthly Premium — ₹49' : 'Annual Premium — ₹449',
         order_id: orderData.orderId,
         prefill: { email },
         theme: { color: '#0f172a' },
@@ -112,7 +112,7 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
           <div className="flex gap-3 mb-4">
             {[
               { id: 'monthly', label: 'Monthly', price: '₹49', sub: 'per month' },
-              { id: 'annual', label: 'Annual', price: '₹599', sub: 'per year', badge: 'SAVE 17%' }
+              { id: 'annual', label: 'Annual', price: '₹449', sub: 'per year', badge: 'SAVE 25%' }
             ].map(plan => (
               <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
                 className={`flex-1 border-2 rounded-2xl p-3 text-left transition-all ${
@@ -170,7 +170,7 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
             onClick={handlePayment}
             disabled={loading || !email || !termsAgreed}
             className="w-full bg-slate-900 text-white font-semibold py-4 rounded-2xl text-sm tracking-wide disabled:opacity-40 active:scale-95 transition-transform">
-            {loading ? 'Processing...' : `Upgrade — ${selectedPlan === 'monthly' ? '₹49/month' : '₹599/year'}`}
+            {loading ? 'Processing...' : `Upgrade — ${selectedPlan === 'monthly' ? '₹49/month' : '₹449/year'}`}
           </button>
 
           <p className="text-xs text-slate-400 text-center mt-3">
