@@ -80,9 +80,9 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
 
         {/* Top section */}
         <div className="bg-slate-900 px-6 pt-6 pb-8 relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800">
-            ✕
-          </button>
+          <button onClick={onClose} className="absolute top-4 right-4 text-white w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors text-lg font-bold">
+  ✕
+</button>
           <p className="text-amber-400 text-xs font-semibold tracking-widest mb-2">PREMIUM FEATURE</p>
           <h2 className="font-serif text-3xl text-white font-light mb-1">{feat.icon} {feat.title}</h2>
           <p className="text-slate-400 text-sm">{feat.desc}</p>
@@ -142,8 +142,11 @@ export default function PremiumGate({ feature, onClose, onSuccess }) {
           </button>
 
           <p className="text-xs text-slate-400 text-center mt-3">
-            Secure payment via Razorpay · UPI, Cards, Netbanking
-          </p>
+  Secure payment via Razorpay · UPI, Cards, Netbanking
+</p>
+<button onClick={onClose} className="w-full text-center text-sm text-slate-400 mt-3 py-2">
+  No thanks, continue for free
+</button>
         </div>
       </div>
     </div>

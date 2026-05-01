@@ -20,205 +20,247 @@ export default function ChartScreen({ chartData, onBack, onHoroscope, onChat }) 
   ]
 
   const handleDownloadPDF = async () => {
-    // Dynamically load jsPDF
-    if (!window.jspdf) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
-        script.onload = resolve
-        script.onerror = reject
-        document.body.appendChild(script)
+  // Load libraries
+  if (!window.jspdf) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+      script.onload = resolve
+      script.onerror = reject
+      document.body.appendChild(script)
+    })
+  }
+  if (!window.html2canvas) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+      script.onload = resolve
+      script.onerror = reject
+      document.body.appendChild(script)
+    })
+  }
+
+  const { jsPDF } = window.jspdf
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+  const W = 210, M = 15, CW = W - M * 2
+
+  const GOLD = [180, 120, 40]
+  const DARK = [15, 23, 42]
+  const GRAY = [100, 116, 139]
+  const LIGHT = [248, 250, 252]
+  const WHITE = [255, 255, 255]
+
+  let y = 0
+
+  // Header
+  doc.setFillColor(...DARK)
+  doc.rect(0, 0, W, 50, 'F')
+  doc.setFillColor(...GOLD)
+  doc.circle(M + 8, 25, 7, 'F')
+  doc.setFontSize(10)
+  doc.setTextColor(...WHITE)
+  doc.text('J', M + 5.5, 27.5)
+  doc.setFontSize(24)
+  doc.setTextColor(...WHITE)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Jyotish', M + 20, 22)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...GOLD)
+  doc.text('VEDIC ASTROLOGY · PERSONAL KUNDALI REPORT', M + 20, 30)
+  doc.setFontSize(8)
+  doc.setTextColor(160, 160, 160)
+  doc.text('Generated: ' + new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'}), W - M, 30, {align:'right'})
+
+  y = 60
+
+  // Name card
+  doc.setFillColor(...LIGHT)
+  doc.roundedRect(M, y, CW, 28, 3, 3, 'F')
+  doc.setFontSize(16)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...DARK)
+  doc.text(name || 'Native', M + 8, y + 10)
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...GRAY)
+  doc.text(ascendant?.sign + ' Lagna  ·  ' + moonSign + ' Moon  ·  ' + nakshatra + ' Nakshatra Pada ' + nakshatraPada, M + 8, y + 18)
+  doc.text('Currently in ' + dasha?.current + ' – ' + dasha?.subDasha + ' Dasha until ' + dasha?.endDate, M + 8, y + 24)
+  y += 36
+
+  // Capture Kundali wheel SVG
+  const kundaliEl = document.querySelector('.kundali-wheel-container')
+  if (kundaliEl) {
+    try {
+      const canvas = await window.html2canvas(kundaliEl, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false
       })
-    }
-    const { jsPDF } = window.jspdf
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-    const W = 210, M = 15, CW = W - M * 2
-
-    // Colors
-    const GOLD = [180, 120, 40]
-    const DARK = [15, 23, 42]
-    const GRAY = [100, 116, 139]
-    const LIGHT = [248, 250, 252]
-    const WHITE = [255, 255, 255]
-
-    let y = 0
-
-    // Header background
-    doc.setFillColor(...DARK)
-    doc.rect(0, 0, W, 50, 'F')
-
-    // Logo circle
-    doc.setFillColor(...GOLD)
-    doc.circle(M + 8, 25, 7, 'F')
-    doc.setFontSize(10)
-    doc.setTextColor(...WHITE)
-    doc.text('J', M + 5.5, 27.5)
-
-    // Title
-    doc.setFontSize(24)
-    doc.setTextColor(...WHITE)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Jyotish', M + 20, 22)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...GOLD)
-    doc.text('VEDIC ASTROLOGY · PERSONAL KUNDALI REPORT', M + 20, 30)
-
-    // Date
-    doc.setFontSize(8)
-    doc.setTextColor(160, 160, 160)
-    doc.text('Generated: ' + new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'}), W - M, 30, {align:'right'})
-
-    y = 60
-
-    // Name & basic info card
-    doc.setFillColor(...LIGHT)
-    doc.roundedRect(M, y, CW, 28, 3, 3, 'F')
-    doc.setFontSize(16)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...DARK)
-    doc.text(name || 'Native', M + 8, y + 10)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...GRAY)
-    doc.text(ascendant?.sign + ' Lagna  ·  ' + moonSign + ' Moon  ·  ' + nakshatra + ' Nakshatra Pada ' + nakshatraPada, M + 8, y + 18)
-    doc.text('Currently in ' + dasha?.current + ' – ' + dasha?.subDasha + ' Dasha until ' + dasha?.endDate, M + 8, y + 24)
-    y += 36
-
-    // Section header helper
-    const sectionHeader = (title) => {
+      const imgData = canvas.toDataURL('image/png')
+      const imgSize = 90 // mm
+      const imgX = (W - imgSize) / 2
+      // Section header
       doc.setFillColor(...GOLD)
       doc.rect(M, y, 3, 6, 'F')
       doc.setFontSize(11)
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...DARK)
-      doc.text(title, M + 6, y + 5)
-      y += 12
+      doc.text('BIRTH CHART (KUNDALI)', M + 6, y + 5)
+      y += 10
+      doc.addImage(imgData, 'PNG', imgX, y, imgSize, imgSize)
+      y += imgSize + 8
+    } catch(e) {
+      console.log('Could not capture kundali wheel', e)
     }
+  }
 
-    // Panchanga
-    sectionHeader('PANCHANGA')
-    const panchaData = [
-      ['Tithi', tithi || '-'],
-      ['Yoga', yoga || '-'],
-      ['Karana', karana || '-'],
-      ['Nakshatra Deity', nakshatraDeity || '-'],
-      ['Nakshatra Quality', nakshatraQuality || '-'],
-    ]
-    panchaData.forEach(([label, value]) => {
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...GRAY)
-      doc.text(label, M, y)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...DARK)
-      doc.text(value, M + 50, y)
-      y += 6
-    })
-    y += 6
+  // Check page space
+  if (y > 200) { doc.addPage(); y = 20 }
 
-    // Planets table
-    sectionHeader('PLANETARY POSITIONS')
-    // Table header
-    doc.setFillColor(...DARK)
-    doc.rect(M, y, CW, 7, 'F')
-    doc.setFontSize(8)
+  const sectionHeader = (title) => {
+    doc.setFillColor(...GOLD)
+    doc.rect(M, y, 3, 6, 'F')
+    doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...WHITE)
-    doc.text('Planet', M + 3, y + 5)
-    doc.text('Sign', M + 30, y + 5)
-    doc.text('House', M + 65, y + 5)
-    doc.text('Degree', M + 90, y + 5)
-    doc.text('Dignity', M + 120, y + 5)
-    doc.text('Strength', M + 155, y + 5)
-    y += 7
+    doc.setTextColor(...DARK)
+    doc.text(title, M + 6, y + 5)
+    y += 12
+  }
 
-    planets?.forEach((p, i) => {
-      doc.setFillColor(i % 2 === 0 ? 248 : 255, i % 2 === 0 ? 250 : 255, i % 2 === 0 ? 252 : 255)
-      doc.rect(M, y, CW, 6, 'F')
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...DARK)
-      doc.setFontSize(8)
-      doc.text(p.name, M + 3, y + 4.5)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...GRAY)
-      doc.text(p.sign, M + 30, y + 4.5)
-      doc.text('House ' + p.house, M + 65, y + 4.5)
-      doc.text(p.degree + '°', M + 90, y + 4.5)
-      const dignityColor = p.dignity === 'Exalted' ? [22, 163, 74] : p.dignity === 'Debilitated' ? [220, 38, 38] : [...GRAY]
-      doc.setTextColor(...dignityColor)
-      doc.text(p.dignity, M + 120, y + 4.5)
-      doc.setTextColor(...DARK)
-      doc.text(p.strength + '%', M + 155, y + 4.5)
-      y += 6
-    })
-    y += 8
-
-    // Check if we need a new page
-    if (y > 240) { doc.addPage(); y = 20 }
-
-    // Yogas
-    if (yogas?.length > 0) {
-      sectionHeader('YOGAS & DOSHAS')
-      yogas.forEach(yg => {
-        doc.setFontSize(9)
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor(...GOLD)
-        doc.text('✦ ' + yg.name, M, y)
-        y += 5
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(...GRAY)
-        const desc = doc.splitTextToSize(yg.desc, CW)
-        doc.text(desc, M + 4, y)
-        y += desc.length * 4 + 4
-      })
-      doshas?.forEach(d => {
-        doc.setFont('helvetica', 'bold')
-        doc.setTextColor([220, 38, 38])
-        doc.text('⚠ ' + d.name + ' (' + d.severity + ')', M, y)
-        y += 5
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(...GRAY)
-        const desc = doc.splitTextToSize(d.desc, CW)
-        doc.text(desc, M + 4, y)
-        y += desc.length * 4 + 4
-      })
-      y += 4
-    }
-
-    // Summary
-    if (y > 220) { doc.addPage(); y = 20 }
-    sectionHeader('CHART SUMMARY')
+  // Panchanga
+  sectionHeader('PANCHANGA')
+  const panchaData = [
+    ['Tithi', tithi || '-'],
+    ['Yoga', yoga || '-'],
+    ['Karana', karana || '-'],
+    ['Nakshatra Deity', nakshatraDeity || '-'],
+    ['Nakshatra Quality', nakshatraQuality || '-'],
+  ]
+  panchaData.forEach(([label, value]) => {
     doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...GRAY)
+    doc.text(label, M, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...DARK)
+    doc.text(value, M + 50, y)
+    y += 6
+  })
+  y += 6
+
+  if (y > 230) { doc.addPage(); y = 20 }
+
+  // Planets table
+  sectionHeader('PLANETARY POSITIONS')
+  doc.setFillColor(...DARK)
+  doc.rect(M, y, CW, 7, 'F')
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...WHITE)
+  doc.text('Planet', M + 3, y + 5)
+  doc.text('Sign', M + 30, y + 5)
+  doc.text('House', M + 65, y + 5)
+  doc.text('Degree', M + 90, y + 5)
+  doc.text('Dignity', M + 120, y + 5)
+  doc.text('Strength', M + 155, y + 5)
+  y += 7
+
+  planets?.forEach((p, i) => {
+    if (y > 270) { doc.addPage(); y = 20 }
+    doc.setFillColor(i % 2 === 0 ? 248 : 255, i % 2 === 0 ? 250 : 255, i % 2 === 0 ? 252 : 255)
+    doc.rect(M, y, CW, 6, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...DARK)
+    doc.setFontSize(8)
+    doc.text(p.name, M + 3, y + 4.5)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(...GRAY)
-    const summaryLines = doc.splitTextToSize(summary || '', CW)
-    doc.text(summaryLines, M, y)
-    y += summaryLines.length * 5 + 8
+    doc.text(p.sign, M + 30, y + 4.5)
+    doc.text('House ' + p.house, M + 65, y + 4.5)
+    doc.text(p.degree + '°', M + 90, y + 4.5)
+    const dc = p.dignity === 'Exalted' ? [22,163,74] : p.dignity === 'Debilitated' ? [220,38,38] : [...GRAY]
+    doc.setTextColor(...dc)
+    doc.text(p.dignity, M + 120, y + 4.5)
+    doc.setTextColor(...DARK)
+    doc.text(p.strength + '%', M + 155, y + 4.5)
+    y += 6
+  })
+  y += 8
 
-    // Sade Sati
-    if (sadeSati?.active) {
-      doc.setFillColor(254, 243, 199)
-      doc.roundedRect(M, y, CW, 14, 2, 2, 'F')
+  if (y > 230) { doc.addPage(); y = 20 }
+
+  // Yogas
+  if (yogas?.length > 0) {
+    sectionHeader('YOGAS & DOSHAS')
+    yogas.forEach(yg => {
+      if (y > 260) { doc.addPage(); y = 20 }
       doc.setFontSize(9)
       doc.setFont('helvetica', 'bold')
-      doc.setTextColor(180, 83, 9)
-      doc.text('⚠ Sade Sati Active — ' + sadeSati.phase + ' Phase', M + 4, y + 6)
+      doc.setTextColor(...GOLD)
+      doc.text('✦ ' + yg.name, M, y)
+      y += 5
       doc.setFont('helvetica', 'normal')
-      doc.setTextColor(120, 53, 15)
-      doc.text('Saturn is transiting near your Moon sign. Consult your astrologer for remedies.', M + 4, y + 11)
-      y += 20
-    }
+      doc.setTextColor(...GRAY)
+      const desc = doc.splitTextToSize(yg.desc, CW)
+      doc.text(desc, M + 4, y)
+      y += desc.length * 4 + 4
+    })
+    doshas?.forEach(d => {
+      if (y > 260) { doc.addPage(); y = 20 }
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(220, 38, 38)
+      doc.text('⚠ ' + d.name + ' (' + d.severity + ')', M, y)
+      y += 5
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...GRAY)
+      const desc = doc.splitTextToSize(d.desc, CW)
+      doc.text(desc, M + 4, y)
+      y += desc.length * 4 + 4
+    })
+    y += 4
+  }
 
-    // Footer
+  if (y > 220) { doc.addPage(); y = 20 }
+
+  // Summary
+  sectionHeader('CHART SUMMARY')
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...GRAY)
+  const summaryLines = doc.splitTextToSize(summary || '', CW)
+  doc.text(summaryLines, M, y)
+  y += summaryLines.length * 5 + 8
+
+  // Sade Sati
+  if (sadeSati?.active) {
+    if (y > 260) { doc.addPage(); y = 20 }
+    doc.setFillColor(254, 243, 199)
+    doc.roundedRect(M, y, CW, 14, 2, 2, 'F')
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(180, 83, 9)
+    doc.text('⚠ Sade Sati Active — ' + sadeSati.phase + ' Phase', M + 4, y + 6)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(120, 53, 15)
+    doc.text('Saturn is transiting near your Moon sign. Consult your astrologer for remedies.', M + 4, y + 11)
+    y += 20
+  }
+
+  // Footer on all pages
+  const totalPages = doc.getNumberOfPages()
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i)
     doc.setFillColor(...DARK)
     doc.rect(0, 287 - 15, W, 15, 'F')
     doc.setFontSize(7)
     doc.setTextColor(160, 160, 160)
-    doc.text('Generated by Jyotish · myjyotish-ai.in · Powered by Swiss Ephemeris & Lahiri Ayanamsha', W / 2, 287 - 6, {align:'center'})
-
-    doc.save((name || 'Kundali') + '_Jyotish_Report.pdf')
+    doc.text('Generated by Jyotish · myjyotish-ai.in · Powered by Swiss Ephemeris & Lahiri Ayanamsha · Page ' + i + ' of ' + totalPages, W / 2, 287 - 6, {align:'center'})
   }
+
+  doc.save((name || 'Kundali') + '_Jyotish_Report.pdf')
+}
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -302,9 +344,11 @@ export default function ChartScreen({ chartData, onBack, onHoroscope, onChat }) 
           <div className="flex flex-col gap-4">
             {/* Kundali Wheel */}
             <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-              <p className="text-xs font-semibold text-slate-400 tracking-widest mb-3">BIRTH CHART</p>
-              <KundaliWheel chartData={chartData} />
-            </div>
+  <p className="text-xs font-semibold text-slate-400 tracking-widest mb-3">BIRTH CHART</p>
+  <div className="kundali-wheel-container">
+    <KundaliWheel chartData={chartData} />
+  </div>
+</div>
 
             {/* Panchanga */}
             <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
