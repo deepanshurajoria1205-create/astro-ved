@@ -662,13 +662,28 @@ app.post('/api/sunsign', checkPremium, async (req, res) => {
     const demoContext = Object.keys(demo).length
       ? 'Reader profile: age '+demo.ageGroup+', '+demo.lifeStage+', '+demo.relationshipStatus+', interested in: '+(Array.isArray(demo.primaryInterest)?demo.primaryInterest.join(', '):demo.primaryInterest)
       : ''
-    const periodLabel = period === 'monthly'
-      ? now.toLocaleString('en-IN', {month:'long', year:'numeric'})
-      : '2026'
+    const getWeekDates = () => {
+  const start = new Date(now)
+  const day = start.getDay()
+  const diff = start.getDate() - day + (day === 0 ? -6 : 1)
+  start.setDate(diff)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  return start.toLocaleDateString('en-IN', {day:'numeric', month:'short'}) + ' – ' + end.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})
+}
+
+const periodLabel = period === 'weekly'
+  ? 'Week of ' + getWeekDates()
+  : period === 'monthly'
+  ? now.toLocaleString('en-IN', {month:'long', year:'numeric'})
+  : '2026'
     const prompt = [
       'You are a world-class Vedic astrologer writing in the warm, detailed, personal style of Susan Miller of AstrologyZone.',
       'Susan Miller is loved because she writes long, specific, encouraging forecasts that feel like a wise friend talking to you.',
       'Write a '+period+' forecast for '+sign+' Sun sign ('+periodLabel+').',
+period === 'weekly' ? 'THIS IS A WEEKLY FORECAST ONLY — cover exactly 7 days ('+periodLabel+'). Mention specific days like Monday, Wednesday, Friday. Do NOT write about months or the full year.' :
+period === 'monthly' ? 'THIS IS A MONTHLY FORECAST — cover the full month of '+periodLabel+' only.' :
+'THIS IS AN ANNUAL FORECAST — cover the full year 2026 quarter by quarter.',
       '',
       'CURRENT PLANETARY TRANSITS (Vedic sidereal, house positions from '+sign+' Sun sign):',
       transitDesc,
@@ -695,7 +710,7 @@ app.post('/api/sunsign', checkPremium, async (req, res) => {
       '- Be optimistic but honest about challenges — always offer the remedy',
       demoContext ? '- Tailor the reading to: '+demoContext : '',
       '- End with an inspiring Sanskrit blessing and warm closing',
-      '- Total: '+(period==='monthly'?'700-900':'1100-1400')+' words',
+      '- Total: '+(period==='weekly'?'400-500':period==='monthly'?'700-900':'1100-1400')+' words',
     ].join('\n')
     const response = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+process.env.GEMINI_API_KEY,
