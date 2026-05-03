@@ -1,3 +1,4 @@
+import SettingsScreen from './screens/SettingsScreen'
 import { useState, useEffect } from 'react'
 import SplashScreen from './screens/SplashScreen'
 import BirthForm from './screens/BirthForm'
@@ -40,13 +41,14 @@ export default function App() {
   }, [])
 
   const goTo = (s) => { setPrevScreen(screen); setScreen(s) }
-  const showBottomNav = ['chart','horoscope','chat','sunsign'].includes(screen)
+  const showBottomNav = ['chart','horoscope','chat','sunsign','settings'].includes(screen)
 
   const NAV_ITEMS = [
     { id: 'chart', icon: '◉', label: 'Kundali', requiresChart: true },
     { id: 'horoscope', icon: '✦', label: 'Horoscope', requiresChart: true },
     { id: 'sunsign', icon: '☀', label: 'Sun Sign', requiresChart: false },
     { id: 'chat', icon: '◎', label: 'Ask AI', requiresChart: true },
+    { id: 'settings', icon: '⊙', label: 'Settings', requiresChart: false },
   ]
 
   const handleNavPress = (item) => {
@@ -106,6 +108,12 @@ export default function App() {
               initialSection={legalSection}
             />
           )}
+          {screen === 'settings' && (
+  <SettingsScreen
+    onBack={() => setScreen(prevScreen)}
+    chartData={chartData}
+  />
+)}
         </div>
 
         {/* Bottom Navigation */}
