@@ -473,6 +473,7 @@ app.post('/api/ai-horoscope', checkPremium, async (req, res) => {
     const prompt=[
   'You are Jyotish Acharya, a master Vedic astrologer trained in Brihat Parashara Hora Shastra and Jaimini sutras.',
   'Your readings are loved because they synthesize multiple chart factors into specific, actionable, life-changing guidance.',
+  'You ONLY answer questions related to Vedic astrology, Jyotish, birth charts, planetary influences, life guidance, spirituality and karma. If asked anything unrelated, politely redirect to astrology topics.',
   '',
   'BIRTH CHART:',
   'Name: '+(name||'the native'),
@@ -571,12 +572,67 @@ app.post('/api/ai-horoscope', checkPremium, async (req, res) => {
     res.status(500).json({error:err.message})
   }
 })
+function getOffTopicResponse() {
+  const responses = [
+    'Namaste! I am Jyotish Acharya, your personal Vedic astrology guide. I can only help with questions about your birth chart, planetary influences, Dasha periods, and life guidance through Jyotish. What would you like to know about your Kundali today?',
+    'My knowledge is dedicated entirely to the sacred science of Jyotish. I cannot help with this topic, but your birth chart holds deep wisdom about your life path, relationships and career — shall we explore that instead?',
+    'Jyotish Acharya here! I specialise only in Vedic astrology. For this topic I would suggest seeking a specialist. However, I can reveal powerful insights about your destiny from your Kundali — what shall we discuss?'
+  ]
+  return responses[Math.floor(Math.random() * responses.length)]
+}
 
+function getAstrologyRedirects(chartData) {
+  const dl = chartData?.dasha?.current || 'your Mahadasha'
+  const moonSign = chartData?.moonSign || 'your Moon sign'
+  const lagna = chartData?.ascendant?.sign || 'your Lagna'
+  return [
+    'What does my ' + dl + ' Mahadasha mean for me?',
+    'What does my ' + moonSign + ' Moon say about my emotions?',
+    'What is my life purpose according to my ' + lagna + ' Lagna?'
+  ]
+}
 app.post('/api/chat', checkPremium, async (req, res) => {
   if (!req.isPremium && req.body.messageCount > 3) {
     return res.status(403).json({ error: 'premium_required', feature: 'chat' })
   }
   try {
+    // Topic guard — astrology only
+const OFF_TOPIC_PATTERNS = [
+  /\b(recipe|cook|bake|food|dish|ingredient|cuisine)\b/i,
+  /\b(code|program|software|javascript|python|html|css|debug|error|bug)\b/i,
+  /\b(movie|film|actor|actress|bollywood|hollywood|web series|netflix)\b/i,
+  /\b(cricket|football|ipl|match|score|sports|team|player)\b/i,
+  /\b(news|politics|government|election|minister|party|vote)\b/i,
+  /\b(stock|crypto|bitcoin|nft|trading|mutual fund|sensex|nifty)\b/i,
+  /\b(weather|temperature|rain|humidity|climate)\b/i,
+  /\b(joke|funny|meme|humor|laugh|comedy)\b/i,
+  /\b(song|music|singer|band|album|playlist|spotify)\b/i,
+  /\b(game|gaming|pubg|minecraft|playstation|xbox)\b/i,
+  /\b(translate|translation|meaning in english|meaning in hindi)\b/i,
+  /\b(history|geography|science|physics|chemistry|biology|math)\b/i,
+]
+
+const ASTROLOGY_KEYWORDS = [
+  'kundali','chart','horoscope','astrology','jyotish','nakshatra','rashi','lagna',
+  'ascendant','planet','graha','dasha','mahadasha','yoga','dosha','sade sati',
+  'transit','marriage','relationship','career','health','money','property',
+  'children','spiritual','karma','dharma','remedy','mantra','gemstone','rahu',
+  'ketu','shani','guru','shukra','mangal','budha','surya','chandra','moon',
+  'saturn','jupiter','venus','mars','mercury','sun','future','prediction',
+  'muhurta','compatibility','match','birth','natal','forecast','reading'
+]
+
+const questionLower = question.toLowerCase()
+const isOffTopic = OFF_TOPIC_PATTERNS.some(p => p.test(question))
+const hasAstrologyKeyword = ASTROLOGY_KEYWORDS.some(k => questionLower.includes(k))
+
+if (isOffTopic && !hasAstrologyKeyword) {
+  return res.json({
+    answer: getOffTopicResponse(),
+    followUps: getAstrologyRedirects(chartData),
+    offTopic: true
+  })
+}
     const {question,chartData,history}=req.body
     if(!question||!chartData) return res.status(400).json({error:'Missing data'})
     const {ascendant,moonSign,nakshatra,nakshatraPada,dasha,yogas,doshas,planets,houses,name,aspects,houseLordAnalysis,demographics}=chartData

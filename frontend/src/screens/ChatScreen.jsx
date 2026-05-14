@@ -147,10 +147,11 @@ export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
         return
       }
       setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.answer || 'Please try again.',
-        followUps: data.followUps || []
-      }])
+  role: 'assistant',
+  content: data.answer || 'Please try again.',
+  followUps: data.followUps || [],
+  offTopic: data.offTopic || false
+}])
     } catch(e) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error. Please try again.' }])
     }
@@ -202,11 +203,14 @@ export default function ChatScreen({ chartData, theme, userLocation, onBack }) {
                 </div>
               )}
               <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-slate-900 text-white rounded-tr-sm'
-                  : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm shadow-sm'
-              }`}>
-                {msg.content}
+  msg.role === 'user'
+    ? 'bg-slate-900 text-white rounded-tr-sm'
+    : msg.offTopic
+    ? 'bg-amber-50 border border-amber-200 text-amber-900 rounded-tl-sm shadow-sm'
+    : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm shadow-sm'
+}`}>
+{msg.offTopic && <p className="text-xs font-semibold text-amber-600 mb-1.5">🪐 Jyotish Acharya only answers astrology questions</p>}
+{msg.content}
               </div>
             </div>
 
