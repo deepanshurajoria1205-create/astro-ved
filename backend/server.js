@@ -596,8 +596,11 @@ app.post('/api/chat', checkPremium, async (req, res) => {
     return res.status(403).json({ error: 'premium_required', feature: 'chat' })
   }
   try {
+    const {question,chartData,history}=req.body
+    if(!question||!chartData) return res.status(400).json({error:'Missing data'})
+
     // Topic guard — astrology only
-const OFF_TOPIC_PATTERNS = [
+    const OFF_TOPIC_PATTERNS = [
   /\b(recipe|cook|bake|food|dish|ingredient|cuisine)\b/i,
   /\b(code|program|software|javascript|python|html|css|debug|error|bug)\b/i,
   /\b(movie|film|actor|actress|bollywood|hollywood|web series|netflix)\b/i,
@@ -633,7 +636,6 @@ if (isOffTopic && !hasAstrologyKeyword) {
     offTopic: true
   })
 }
-    const {question,chartData,history}=req.body
     if(!question||!chartData) return res.status(400).json({error:'Missing data'})
     const {ascendant,moonSign,nakshatra,nakshatraPada,dasha,yogas,doshas,planets,houses,name,aspects,houseLordAnalysis,demographics}=chartData
     const dl=dasha?.current||'Guru',al=dasha?.subDasha||'Shani'
